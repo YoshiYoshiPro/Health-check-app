@@ -1,0 +1,39 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Input
+{% endblock %}
+
+{% block main %}
+    <form action="" method="post">
+        <div class="mb-3">
+            <input autocomplete="off" autofocus class="form-control mx-auto w-auto" name="body_temperature" placeholder="体温を入力してください" type="text">
+        </div>
+        <div class="mb-3">
+            <p>鼻水・鼻づまりがないか <br>
+                <input type="radio" name="runny_nose" value="ある">ある
+                <input type="radio" name="runny_nose" value="ない">ない
+            </p>
+            <p>頭痛・吐き気がないか <br>
+                <input type="radio" name="headache" value="ある">ある
+                <input type="radio" name="headache" value="ない">ない
+            </p>
+            <p>息苦しさ・全身のだるさがないか <br>
+                <input type="radio" name="stuffiness" value="ある">ある
+                <input type="radio" name="stuffiness" value="ない">ない
+            </p>
+            <p>咳・のどの痛みが出ていないか <br>
+                <input type="radio" name="cough" value="ある">ある
+                <input type="radio" name="cough" value="ない">ない
+            </p>
+            <p>味覚・臭覚の異常がないか <br>
+                <input type="radio" name="taste_smell_abnormal" value="ある">ある
+                <input type="radio" name="taste_smell_abnormal" value="ない">ない
+            </p>
+        </div>
+        <div class="mb-3">
+            <input autocomplete="off" class="form-control mx-auto w-auto" name="memo" placeholder="その他" type="text">
+        </div>
+        <buttom class="btn btn-primary" type="submit">送信</buttom>
+    </form>
+{% endblock %}
