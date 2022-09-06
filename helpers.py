@@ -29,13 +29,13 @@ def login_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
-def admin_required(f):
+def admin_required(s):
     """
     Decorate routes to require login.
 
     https://flask.palletsprojects.com/en/1.1.x/patterns/viewdecorators/
     """
-    @wraps(f)
+    @wraps(s)
     def decorated_function(*args, **kwargs):
         if session.get("group_id") is None:
             return redirect("/login")
