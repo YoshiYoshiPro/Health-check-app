@@ -206,15 +206,15 @@ def admin_login():
         conn.close()
 
         # ログイン者を管理ページに移動させる。
-        return redirect("/admin_home")
+        return redirect("/adminhome")
 
     # GET経由ならログイン画面を表示させる
     else:
         return render_template("admin_login.html")
 
 # グループ作成
-@app.route("/admin_reg", methods=["GET", "POST"])
-def admin_reg():
+@app.route("/adminreg", methods=["GET", "POST"])
+def adminreg():
 
     # postで入ってきたらデータベースに登録の処理を実行
     if request.method == "POST":
@@ -222,15 +222,15 @@ def admin_reg():
         # 空欄チェック
         groupname = request.form.get('groupname')
         if not groupname:
-            return apology("admin_reg.html", "団体名を入力してください")
+            return apology("adminreg.html", "団体名を入力してください")
 
         password = request.form.get('password')
         if not password:
-            return apology("admin_reg.html", "パスワードを入力してください")
+            return apology("adminreg.html", "パスワードを入力してください")
 
         confirmation = request.form.get('confirmation')
         if not confirmation:
-            return apology("admin_reg.html", "確認パスワードを入力してください")
+            return apology("adminreg.html", "確認パスワードを入力してください")
 
         # データベース接続
         conn = sqlite3.connect("health.db")
@@ -240,7 +240,7 @@ def admin_reg():
         #パスワードと確認パスワードがかぶってないか確認
         if not password == confirmation:
             conn.close()
-            return apology("admin_reg.html", "パスワードと確認パスワードが一致しません")
+            return apology("adminreg.html", "パスワードと確認パスワードが一致しません")
         password_hash = generate_password_hash(password, method="sha256")
 
         # データベースに登録 あとでもろもろ追加
@@ -258,7 +258,7 @@ def admin_reg():
 
     # getの場合は登録画面になります。
     else:
-        return render_template("admin_reg.html")
+        return render_template("adminreg.html")
 
 # 管理者ID表示
 @app.route("/adminid")
@@ -275,7 +275,7 @@ def adminid():
 
 
 # 管理ページ
-@app.route("/admin_home")
-def admin_home():
+@app.route("/adminhome")
+def adminhome():
 
-    return render_template("admin_home.html")
+    return render_template("adminhome.html")
