@@ -247,3 +247,42 @@ def register():
     # getの場合は登録画面になります。
     else:
         return render_template("admin_login.html")
+
+
+# 管理者ログイン
+@app.route("/admin_login", methods=["GET", "POST"])
+def register():
+
+    # postで入ってきたらデータベースに登録の処理を実行
+    if request.method == "POST":
+
+        # 空欄チェック
+        groupid = request.form.get('groupid')
+        if not groupid:
+            return apology("admin_login.html", "団体IDを入力してください")
+
+        password = request.form.get('password')
+        if not password:
+            return apology("admin_login.html", "パスワードを入力してください")
+
+        # データベース接続
+        conn = sqlite3.connect("health.db")
+        conn.row_factory = dict_factory
+        cur = conn.cursor()
+
+         # データベースにユーザー名があるかどうか確認する
+        cur.execute("SELECT * FROM groups WHERE groupid = ?", (groupid,))
+        rows = cur.fetchall()
+
+        # 団体が存在し、パスワードが正しいか確認する。
+        if len(rows) != 1 or not check_password_hash(rows["group_password"], request.form.get("password")):
+            # ファイルを閉じる
+            conn.close()
+            return apology("admin_login.html", "ユーザー名またはパスワードが間違っております。")
+
+        # 管理者ページへ移動
+        return redirect("admin.html")
+
+    # getの場合は登録画面になります。
+    else:
+        return render_template("admin_login.html")
