@@ -108,34 +108,23 @@ def register():
 
     # postで入ってきたらデータベースに登録の処理を実行
     if request.method == "POST":
-        register_rows = ["groupid", "userid", "username", "password", "confirmation"]
 
+        # 空欄チェック
+        register_rows = ["groupid", "userid", "username", "password", "confirmation"]
         for register_row in register_rows:
-                userid = request.form.get("userid")
-                if not userid:
+                r = request.form.get(register_row)
+                if not r:
                     return apology("register.html", "入力していない項目があります")
 
-
-
-        # ユーザー名が空ではないことを確認
-        username = request.form.get('username')
-        if not username:
-            return apology("must")
-
-        # パスワードが空ではないことを確認
-        password = request.form.get('password')
-        if not password:
-            return apology("must provide password")
-
-        # 確認パスワードが空ではないか確認
-        confirmation = request.form.get('confirmation')
-        if not confirmation:
-            return apology("must provide password")
+        # データベース接続処理　CS50を使わないバージョン
+        conn = sqlite3.connect("health.db")
+        conn.row_factory = dict_factory
+        cur = conn.cursor()
 
         # ユーザーIDがかぶってないか確認。
-        check = db.execute("SELECT username FROM users WHERE username = ?", username)
+        check = cur.execute("SELECT id_user FROM users WHERE id_user = ?", (userid,))
         if check:
-            return apology("Username is already in use")
+            return apology("register.html", "同じユーザーIDが存在します。")
 
         #パスワードと確認パスワードがかぶってないか確認
         if not password == confirmation:
