@@ -241,8 +241,8 @@ def register():
             conn.close()
             return apology("admin_login.html", "ユーザー名またはパスワードが間違っております。")
 
-        # どこかに移動（暫定）
-        return redirect("/")
+        # 管理者ページへ移動
+        return redirect("admin.html")
 
     # getの場合は登録画面になります。
     else:
