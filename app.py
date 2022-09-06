@@ -151,6 +151,7 @@ def register():
         password_hash = generate_password_hash(password, method="sha256")
 
         # データベースに登録 あとでもろもろ追加
+        newdata = (userid, username, password_hash)
         cur.execute("INSERT INTO users (id_user,username, hash) VALUES(?, ?, ?)", (userid, username, password_hash))
         # リダイレクトでログイン画面に移動
         return redirect("/login")
