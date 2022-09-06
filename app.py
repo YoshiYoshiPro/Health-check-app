@@ -26,6 +26,7 @@ def after_request(response):
     response.headers["Pragma"] = "no-cache"
     return response
 
+# sqliteを辞書型に変換
 def dict_factory(cursor, row):
     d = {}
     for idx, col in enumerate(cursor.description):
@@ -69,7 +70,7 @@ def login():
         cur = conn.cursor()
          # データベースにユーザー名を問い合わせる
         cur.execute("SELECT * FROM users WHERE user_id = ?", userid)
-        rows = cur.fetchone()
+        rows = cur.fetchall()
 
         # ユーザー名が存在し、次はパスワードが正しいか確認する。
         if len(rows) != 1 or not check_password_hash(rows["hash"], request.form.get("password")):
