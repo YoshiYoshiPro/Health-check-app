@@ -110,7 +110,7 @@ def register():
     if request.method == "POST":
 
         # 空欄チェック
-        groupid = request.form.get('groupid')
+        groupid = int(request.form.get('groupid'))
         if not groupid:
             return apology("register.html", "団体IDを入力してください")
 
@@ -177,7 +177,7 @@ def admin_login():
     if request.method == "POST":
 
         # ユーザー名が空ではないことを確認する
-        groupid = request.form.get("groupid")
+        groupid = int(request.form.get("groupid"))
         if not groupid:
             return apology("admin_login.html", "団体IDを入力してください")
 
