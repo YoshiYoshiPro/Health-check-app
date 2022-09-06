@@ -55,11 +55,11 @@ def login():
 
         # ユーザー名が空ではないことを確認する
         if not request.form.get("userid"):
-            return apology("ユーザーIDを入力してください", 403)
+            return apology("ユーザーIDを入力してください")
 
         # パスワードが空ではないことを確認する
         elif not request.form.get("password"):
-            return apology("パスワードを入力して下さい", 403)
+            return apology("パスワードを入力して下さい")
 
         # データベースにユーザー名を問い合わせる
         rows = db.execute("SELECT * FROM users WHERE user_id = ?", request.form.get("userid"))
@@ -101,26 +101,26 @@ def register():
         # ユーザー名が空ではないことを確認
         username = request.form.get('username')
         if not username:
-            return apology("must provide username", 400)
+            return apology("must provide username")
 
         # パスワードが空ではないことを確認
         password = request.form.get('password')
         if not password:
-            return apology("must provide password", 400)
+            return apology("must provide password")
 
         # 確認パスワードが空ではないか確認
         confirmation = request.form.get('confirmation')
         if not confirmation:
-            return apology("must provide password", 400)
+            return apology("must provide password")
 
         # ユーザーIDがかぶってないか確認。
         check = db.execute("SELECT username FROM users WHERE username = ?", username)
         if check:
-            return apology("Username is already in use", 400)
+            return apology("Username is already in use")
 
         #パスワードと確認パスワードがかぶってないか確認
         if not password == confirmation:
-            return apology("invalid username and/or password", 400)
+            return apology("invalid username and/or password")
         password_hash = generate_password_hash(password, method="sha256")
 
         # データベースに登録
