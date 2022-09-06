@@ -62,7 +62,7 @@ def login():
         db = conn.cursor()
 
         # データベースにユーザー名を問い合わせる
-        rows = db.execute("SELECT * FROM users WHERE user_id = ?", userid)[0]
+        rows = db.execute("SELECT * FROM users WHERE user_id = ?", userid)
 
         # ユーザー名が存在し、次はパスワードが正しいか確認する。
         if rows["user_id"] != userid or not check_password_hash(rows["hash"], request.form.get("password")):
