@@ -45,7 +45,6 @@ def index():
 # ログイン画面
 @app.route("/login", methods=["GET", "POST"])
 def login():
-    """Log user in"""
 
     # user_id をリセット
     session.clear()
@@ -66,7 +65,7 @@ def login():
 
         # ユーザー名が存在し、次はパスワードが正しいか確認する。
         if len(rows) != 1 or not check_password_hash(rows[0]["hash"], request.form.get("password")):
-            return apology("ユーザー名またはパスワードが間違っております。", 403)
+            return apology("ユーザー名またはパスワードが間違っております。")
 
         # ログインしたユーザーを記憶する
         session["user_id"] = rows[0]["user_id"]
