@@ -108,6 +108,8 @@ def register():
 
     # postで入ってきたらデータベースに登録の処理を実行
     if request.method == "POST":
+    register_row = ['username',]
+
 
         # ユーザー名が空ではないことを確認
         username = request.form.get('username')
