@@ -200,12 +200,12 @@ def admin_login():
             conn.close()
             return apology("admin_login.html", "団体IDまたはパスワードが間違っております。")
 
-        # ログインしたユーザーを記憶する
-        session["user_id"] = rows["username"]
+        # ログインした団体名を記憶する
+        session["group_id"] = rows["group_name"]
         # ファイルを閉じる
         conn.close()
         # ユーザーを体温報告ページに移動させる。
-        return redirect("/")
+        return redirect("/admin")
 
     # GET経由ならログイン画面を表示させる
     else:
@@ -249,7 +249,7 @@ def admin_reg():
         conn.close()
 
         # リダイレクトで団体IDを表示
-        return redirect("/adminid.html")
+        return redirect("/adminid")
 
     # getの場合は登録画面になります。
     else:
@@ -265,4 +265,4 @@ def adminid():
 
     groupid = cur.execute("SELECT group_id FROM groups WHERE group_id = ?", (session["group_id"],))
 
-    return render_template("history.html", groupid=groupid)
+    return render_template("admin_html", groupid=groupid)
