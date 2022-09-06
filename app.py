@@ -166,6 +166,51 @@ def register():
     else:
         return render_template("register.html")
 
+# 管理者ログイン
+@app.route("/admin_login", methods=["GET", "POST"])
+def admin_login():
+
+    # セッションをリセット
+    session.clear()
+
+    # POST経由の場合
+    if request.method == "POST":
+
+        # ユーザー名が空ではないことを確認する
+        groupid = request.form.get("groupid")
+        if not groupid:
+            return apology("admin_login.html", "団体IDを入力してください")
+
+        # パスワードが空ではないことを確認する
+        elif not request.form.get("password"):
+            return apology("admin_login.html", "パスワードを入力してください")
+
+        # データベース接続処理　CS50を使わないバージョン
+        conn = sqlite3.connect("health.db")
+        conn.row_factory = dict_factory
+        cur = conn.cursor()
+
+         # データベースにユーザー名があるかどうか確認する
+        cur.execute("SELECT * FROM users WHERE id_user = ?", (userid,))
+        rows = cur.fetchall()
+
+        # ユーザー名が存在し、次はパスワードが正しいか確認する。
+        if len(rows) != 1 or not check_password_hash(rows["hash"], request.form.get("password")):
+            # ファイルを閉じる
+            conn.close()
+            return apology("login.html", "ユーザー名またはパスワードが間違っております。")
+
+        # ログインしたユーザーを記憶する
+        session["user_id"] = rows["username"]
+        # ファイルを閉じる
+        conn.close()
+        # ユーザーを体温報告ページに移動させる。
+        return redirect("/")
+
+    # GET経由ならログイン画面を表示させる
+    else:
+        return render_template("login.html")
+
 # グループ作成
 @app.route("/admin_reg", methods=["GET", "POST"])
 def admin_reg():
@@ -202,7 +247,6 @@ def admin_reg():
         cur.execute("INSERT INTO groups (group_name, group_password) VALUES(?, ?)", (newdata))
         conn.commit()
         conn.close()
-        
 
         # リダイレクトで団体IDを表示
         return redirect("/adminid.html")
