@@ -108,7 +108,9 @@ def register():
 
     # postで入ってきたらデータベースに登録の処理を実行
     if request.method == "POST":
-    register_row = ['username',]
+    register_row = ["groupid", "userid", "username", "password", "confirmation"]
+
+    for 
 
 
         # ユーザー名が空ではないことを確認
