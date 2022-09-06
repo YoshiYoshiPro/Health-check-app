@@ -241,12 +241,6 @@ def register():
             conn.close()
             return apology("register.html", "団体が存在しません")
 
-        # ユーザーIDがかぶってないか確認。
-        check_userid = cur.execute("SELECT id_user FROM users WHERE id_user = ?", (userid,))
-        if check_userid:
-            conn.close()
-            return apology("register.html", "既に登録済みではありませんか?")
-
         #パスワードと確認パスワードがかぶってないか確認
         if not password == confirmation:
             conn.close()
