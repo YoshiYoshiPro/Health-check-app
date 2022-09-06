@@ -112,7 +112,7 @@ def register():
         # ユーザー名が空ではないことを確認
         username = request.form.get('username')
         if not username:
-            return apology("must provide username")
+            return apology("must")
 
         # パスワードが空ではないことを確認
         password = request.form.get('password')
