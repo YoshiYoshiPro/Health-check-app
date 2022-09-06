@@ -201,7 +201,7 @@ def admin_login():
             return apology("admin_login.html", "団体IDまたはパスワードが間違っております。")
 
         # ログインした団体名を記憶する
-        session["group_id"] = rows["group_name"]
+        session["group_id"] = rows["group_id"]
         # ファイルを閉じる
         conn.close()
 
@@ -246,6 +246,7 @@ def admin_reg():
         # データベースに登録 あとでもろもろ追加
         newdata = (groupname, password_hash)
         cur.execute("INSERT INTO groups (group_name, group_password) VALUES(?, ?)", (newdata))
+        session["group_id"] = rows["group_id"]
         conn.commit()
         conn.close()
 
