@@ -228,4 +228,4 @@ def register():
 
     # getの場合は登録画面になります。
     else:
-        return render_template("register.html")
+        return render_template("admin.html")
