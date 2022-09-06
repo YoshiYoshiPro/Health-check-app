@@ -109,35 +109,36 @@ def register():
     # postで入ってきたらデータベースに登録の処理を実行
     if request.method == "POST":
 
-        # グループIDが空ではないことを確認
+        # 空欄チェック
         groupid = request.form.get('groupid')
         if not groupid:
             return apology("register.html", "団体IDを入力してください")
 
-        # ユーザーIDが空ではないことを確認
         userid = request.form.get('userid')
         if not userid:
             return apology("register.html", "ユーザーIDを入力してください")
 
-        # 名前が空ではないことを確認
         username = request.form.get('username')
         if not username:
             return apology("register.html", "名前を入力してください")
 
-        # パスワードが空ではないことを確認
         password = request.form.get('password')
         if not password:
             return apology("register.html", "パスワードを入力してください")
 
-        # 確認パスワードが空ではないか確認
         confirmation = request.form.get('confirmation')
         if not confirmation:
             return apology("register.html", "確認パスワードを入力してください")
 
+        # データベース接続
+        conn = sqlite3.connect("health.db")
+        conn.row_factory = dict_factory
+        cur = conn.cursor()
+
         # ユーザーIDがかぶってないか確認。
-        check = db.execute("SELECT username FROM users WHERE username = ?", username)
+        check = cur.execute("SELECT user_id FROM users WHERE username = ?", (userid,))
         if check:
-            return apology("Username is already in use")
+            return apology("register.html", "既に登録済みではありませんか?")
 
         #パスワードと確認パスワードがかぶってないか確認
         if not password == confirmation:
