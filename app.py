@@ -211,9 +211,13 @@ def register():
         return render_template("admin_reg.html")
 
 # 管理者ログイン
-@app.route("/admin_login", methods=["GET", "POST"])
-def register():
+@app.route("/adminid")
+def adminid():
 
-    groupid = db.execute("SELECT symbol, shares, price, registered_at FROM finance WHERE user_id = ?", session["user_id"])
+    conn = sqlite3.connect("health.db")
+    conn.row_factory = dict_factory
+    cur = conn.cursor()
+
+    groupid = cur.execute("SELECT group_id FROM groups WHERE group_id = ?", (session["group_id"],))
 
     return render_template("history.html", groupid=groupid)
