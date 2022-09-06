@@ -62,16 +62,16 @@ def login():
         con = sqlite3.connect("health.db")
         cur = con.cursor()
          # データベースにユーザー名を問い合わせる
-        rows = cur.execute(sql, (userid))
+        rows = cur.execute(sql, (userid)).fetchone
 
         # ユーザー名が存在し、次はパスワードが正しいか確認する。
-        if rows["user_id"] != userid or not check_password_hash(rows["hash"], request.form.get("password")):
+        if rows[0] != userid or not check_password_hash(rows[2], request.form.get("password")):
             # ファイルを閉じる
             conn.close()
             return apology("ユーザー名またはパスワードが間違っております。")
 
         # ログインしたユーザーを記憶する
-        session["user_id"] = rows["username"]
+        session["user_id"] = rows[1]
         # ファイルを閉じる
         conn.close()
         # ユーザーを体温報告ページに移動させる。
