@@ -204,12 +204,13 @@ def admin_login():
         session["group_id"] = rows["group_name"]
         # ファイルを閉じる
         conn.close()
-        # ユーザーを体温報告ページに移動させる。
-        return redirect("/admin")
+
+        # ログイン者を管理ページに移動させる。
+        return redirect("/admin_home")
 
     # GET経由ならログイン画面を表示させる
     else:
-        return render_template("login.html")
+        return render_template("admin_login.html")
 
 # グループ作成
 @app.route("/admin_reg", methods=["GET", "POST"])
