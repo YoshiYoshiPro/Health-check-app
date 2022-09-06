@@ -249,7 +249,7 @@ def admin_reg():
 
         # セッション取得のための処理
 
-        cur.execute("SELECT group_id FROM groups WHERE group_id = group_name & ", (groupid,))
+        cur.execute("SELECT group_id FROM groups WHERE group_name = ? & group_password = ? ", (newdata))
         rows = cur.fetchall()
         # 団体が存在し、パスワードが正しいか確認する。
 
