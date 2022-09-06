@@ -214,4 +214,6 @@ def register():
 @app.route("/admin_login", methods=["GET", "POST"])
 def register():
 
-    return redirect("admin.html")
+    groupid = db.execute("SELECT symbol, shares, price, registered_at FROM finance WHERE user_id = ?", session["user_id"])
+
+    return render_template("history.html", groupid=groupid)
