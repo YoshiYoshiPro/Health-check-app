@@ -168,7 +168,7 @@ def register():
 
 # グループ作成
 @app.route("/admin_reg", methods=["GET", "POST"])
-def register():
+def admin_reg():
 
     # postで入ってきたらデータベースに登録の処理を実行
     if request.method == "POST":

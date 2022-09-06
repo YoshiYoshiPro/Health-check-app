@@ -1,23 +1,14 @@
 {% extends "layout.html" %}
 
 {% block title %}
-    管理者ログイン
+    登録完了
 {% endblock %}
 
 {% block main %}
-    <h1>管理者ログイン</h1>
-    <!-- エラーメッセージ -->
-    <p style="color:red">{{ message }}</p>
 
-    <form action="/register" method="post">
-        <p>団体ID</p>
-        <div class="mb-3">
-            <input autocomplete="off" autofocus class="form-control mx-auto w-auto" id="groupid" name="groupid" placeholder="団体ID" type="number">
-        </div>
-        <p>パスワード</p>
-        <div class="mb-3">
-            <input class="form-control mx-auto w-auto" id="password" name="password" placeholder="パスワード" type="password">
-        </div>
-        <button class="btn btn-primary" type="submit">ログイン</button>
-    </form>
+    <h1>登録完了</h1>
+    <p>団体IDは {{ groupid }} </p>
+    <p>となります</p>
+    <p>管理者ログインの際に必要になります。</p>
+
 {% endblock %}
