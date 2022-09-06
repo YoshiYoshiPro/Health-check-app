@@ -69,7 +69,7 @@ def login():
             return apology("ユーザー名またはパスワードが間違っております。", 403)
 
         # ログインしたユーザーを記憶する
-        session["user_id"] = rows[0]["id"]
+        session["user_id"] = rows[0]["user_id"]
 
         # ユーザーを体温報告ページに移動させる。
         return redirect("/")
