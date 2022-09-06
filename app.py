@@ -26,6 +26,12 @@ def after_request(response):
     response.headers["Pragma"] = "no-cache"
     return response
 
+def dict_factory(cursor, row):
+    d = {}
+    for idx, col in enumerate(cursor.description):
+        d[col[0]] = row[idx]
+    return d
+
 # 体温報告画面
 @app.route("/")
 @login_required
@@ -59,7 +65,7 @@ def login():
 
         # データベース処理
         conn = sqlite3.connect("health.db")
-        conn.row_factory = sqlite3.Row
+        conn.row_factory = dict_factory
         cur = conn.cursor()
          # データベースにユーザー名を問い合わせる
         cur.execute("SELECT * FROM users WHERE user_id = ?", userid)
