@@ -65,12 +65,14 @@ def login():
 
         # ユーザー名が存在し、次はパスワードが正しいか確認する。
         if len(rows) != 1 or not check_password_hash(rows[0]["hash"], request.form.get("password")):
+            # ファイルを閉じる
             conn.close()
             return apology("ユーザー名またはパスワードが間違っております。")
 
         # ログインしたユーザーを記憶する
         session["user_id"] = rows[0]["username"]
-
+        # ファイルを閉じる
+        conn.close()
         # ユーザーを体温報告ページに移動させる。
         return redirect("/")
 
