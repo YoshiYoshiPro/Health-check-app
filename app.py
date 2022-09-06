@@ -210,8 +210,8 @@ def register():
     else:
         return render_template("admin.html")
 
-# 登録画面
-@app.route("/register", methods=["GET", "POST"])
+# 管理者ログイン
+@app.route("/admin_login", methods=["GET", "POST"])
 def register():
 
     # postで入ってきたらデータベースに登録の処理を実行
@@ -241,11 +241,11 @@ def register():
             conn.close()
             return apology("register.html", "団体が存在しません")
 
-        #パスワードと確認パスワードがかぶってないか確認
-        if not password == confirmation:
+        # ユーザー名が存在し、次はパスワードが正しいか確認する。
+        if len(rows) != 1 or not check_password_hash(rows["hash"], request.form.get("password")):
+            # ファイルを閉じる
             conn.close()
-            return apology("register.html", "パスワードが一致しません")
-        password_hash = generate_password_hash(password, method="sha256")
+            return apology("login.html", "ユーザー名またはパスワードが間違っております。")
 
         # データベースに登録 あとでもろもろ追加
         newdata = (userid, username, password_hash)
