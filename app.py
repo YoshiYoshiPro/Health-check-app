@@ -142,7 +142,7 @@ def register():
 
         #パスワードと確認パスワードがかぶってないか確認
         if not password == confirmation:
-            return apology("invalid username and/or password")
+            return apology("register.html", "パスワードが一致しません")
         password_hash = generate_password_hash(password, method="sha256")
 
         # データベースに登録
