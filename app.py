@@ -167,7 +167,7 @@ def register():
         return render_template("register.html")
 
 # グループ作成
-@app.route("/admin", methods=["GET", "POST"])
+@app.route("/admin_reg", methods=["GET", "POST"])
 def register():
 
     # postで入ってきたらデータベースに登録の処理を実行
@@ -176,15 +176,15 @@ def register():
         # 空欄チェック
         groupname = request.form.get('groupname')
         if not groupname:
-            return apology("register.html", "団体名を入力してください")
+            return apology("admin_reg.html", "団体名を入力してください")
 
         password = request.form.get('password')
         if not password:
-            return apology("register.html", "パスワードを入力してください")
+            return apology("admin_reg.html", "パスワードを入力してください")
 
         confirmation = request.form.get('confirmation')
         if not confirmation:
-            return apology("register.html", "確認パスワードを入力してください")
+            return apology("admin_reg.html", "確認パスワードを入力してください")
 
         # データベース接続
         conn = sqlite3.connect("health.db")
@@ -194,7 +194,7 @@ def register():
         #パスワードと確認パスワードがかぶってないか確認
         if not password == confirmation:
             conn.close()
-            return apology("register.html", "パスワードが一致しません")
+            return apology("admin_reg.html", "パスワードが一致しません")
         password_hash = generate_password_hash(password, method="sha256")
 
         # データベースに登録 あとでもろもろ追加
@@ -204,11 +204,11 @@ def register():
         conn.close()
 
         # リダイレクトで団体IDを表示
-        return redirect("/adminid")
+        return redirect("/adminid.html")
 
     # getの場合は登録画面になります。
     else:
-        return render_template("admin.html")
+        return render_template("admin_reg.html")
 
 # 管理者ログイン
 @app.route("/admin_login", methods=["GET", "POST"])
