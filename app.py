@@ -202,6 +202,7 @@ def admin_reg():
         cur.execute("INSERT INTO groups (group_name, group_password) VALUES(?, ?)", (newdata))
         conn.commit()
         conn.close()
+        
 
         # リダイレクトで団体IDを表示
         return redirect("/adminid.html")
@@ -210,7 +211,7 @@ def admin_reg():
     else:
         return render_template("admin_reg.html")
 
-# 管理者ログイン
+# 管理者ID表示
 @app.route("/adminid")
 def adminid():
 
