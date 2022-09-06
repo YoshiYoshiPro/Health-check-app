@@ -154,7 +154,7 @@ def register():
         password_hash = generate_password_hash(password, method="sha256")
 
         # データベースに登録 あとでもろもろ追加
-        newdata = (userid, username, password_hash)
+        newdata = (userid, username, password_hash,)
         cur.execute("INSERT INTO users (id_user, username, hash) VALUES(?, ?, ?)", (newdata))
         conn.commit()
         conn.close()
@@ -244,11 +244,11 @@ def adminreg():
         password_hash = generate_password_hash(password, method="sha256")
 
         # データベースに登録 あとでもろもろ追加
-        newdata = (groupname, password_hash)
-        cur.execute("INSERT INTO groups (group_name, group_password) VALUES(?, ?)", (newdata))
+        newdata = (groupname, password_hash,)
+        cur.execute("INSERT INTO groups (group_name, group_password) VALUES(?, ?)", newdata)
 
         # セッション取得のための処理
-        group_id = cur.execute("SELECT group_id FROM groups WHERE group_name = ? AND group_password = ? ", (newdata))
+        group_id = cur.execute("SELECT group_id FROM groups WHERE group_name = ? AND group_password = ? ", newdata)
         session["group_id"] = group_id
         conn.commit()
         conn.close()
