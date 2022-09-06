@@ -59,8 +59,8 @@ def login():
 
         # データベース処理
         sql = "SELECT * FROM users WHERE user_id = ?"
-        conn = sqlite3.connect("health.db")
-        db = conn.cursor()
+        db = sqlite3.connect("health.db")
+        userid = unicode(userid.decode('utf-8'))
          # データベースにユーザー名を問い合わせる
         rows = db.execute(sql, (userid, )).fetchone()
 
