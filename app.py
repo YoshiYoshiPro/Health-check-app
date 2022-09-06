@@ -65,13 +65,13 @@ def login():
         rows = db.execute("SELECT * FROM users WHERE user_id = ?", userid)
 
         # ユーザー名が存在し、次はパスワードが正しいか確認する。
-        if rows["user_id"] != userid or not check_password_hash(rows["hash"], request.form.get("password")):
+        if rows[0]["user_id"] != userid or not check_password_hash(rows[0]["hash"], request.form.get("password")):
             # ファイルを閉じる
             conn.close()
             return apology("ユーザー名またはパスワードが間違っております。")
 
         # ログインしたユーザーを記憶する
-        session["user_id"] = rows["username"]
+        session["user_id"] = rows[0]["username"]
         # ファイルを閉じる
         conn.close()
         # ユーザーを体温報告ページに移動させる。
