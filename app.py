@@ -6,7 +6,7 @@ from flask_session import Session
 from tempfile import mkdtemp
 from werkzeug.security import check_password_hash, generate_password_hash
 
-from helpers import apology, login_required
+from helpers import apology, login_required, admin_required
 
 app = Flask(__name__)
 
@@ -262,6 +262,7 @@ def adminreg():
 
 # 管理者ID表示
 @app.route("/adminid")
+@admin_required
 def adminid():
 
     # データベース接続
@@ -276,6 +277,7 @@ def adminid():
 
 # 管理ページ
 @app.route("/adminhome")
+@admin_required
 def adminhome():
 
     return render_template("adminhome.html")
