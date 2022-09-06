@@ -19,7 +19,7 @@ app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
 
 # データベースの読み込み
-conn = sqlite3.connect("sqlite:///finance.db")
+conn = sqlite3.connect("health.db")
 db = conn.cursor()
 
 @app.after_request
