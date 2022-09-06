@@ -54,12 +54,12 @@ def login():
     if request.method == "POST":
 
         # ユーザー名が空ではないことを確認する
-        if not request.form.get("username"):
-            return apology("must provide username", 403)
+        if not request.form.get("userid"):
+            return apology("ユーザーIDを入力してください", 403)
 
         # パスワードが空ではないことを確認する
         elif not request.form.get("password"):
-            return apology("must provide password", 403)
+            return apology("パスワードを入力して下さい, 403)
 
         # データベースにユーザー名を問い合わせる
         rows = db.execute("SELECT * FROM users WHERE username = ?", request.form.get("username"))
