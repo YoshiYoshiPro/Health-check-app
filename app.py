@@ -260,6 +260,7 @@ def admin_reg():
 @app.route("/adminid")
 def adminid():
 
+    # データベース接続
     conn = sqlite3.connect("health.db")
     conn.row_factory = dict_factory
     cur = conn.cursor()
@@ -267,3 +268,11 @@ def adminid():
     groupid = cur.execute("SELECT group_id FROM groups WHERE group_name = ?", (session["group_name"],))
 
     return render_template("admin_html", groupid=groupid)
+
+
+# 管理ページ
+@app.route("/admin_home")
+@login_required
+def admin_home():
+
+    return render_template("admin_home.html")
