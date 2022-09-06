@@ -137,7 +137,7 @@ def register():
 
         #団体IDが既にあるかどうか
         check_group = cur.execute("SELECT group_id FROM groups WHERE group_id = ?", (groupid,))
-        if check_group:
+        if not check_group:
             conn.close()
             return apology("register.html", "団体が存在しません")
 
