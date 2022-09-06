@@ -94,7 +94,6 @@ def login():
 # ログアウト
 @app.route("/logout")
 def logout():
-    """Log user out"""
 
     # user_id をリセット
     session.clear()
