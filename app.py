@@ -64,11 +64,12 @@ def login():
         elif not request.form.get("password"):
             return apology("パスワードを入力して下さい")
 
-        # データベース処理
+        # データベース接続処理　CS50を使わないバージョン
         conn = sqlite3.connect("health.db")
         conn.row_factory = dict_factory
         cur = conn.cursor()
-         # データベースにユーザー名を問い合わせる
+
+         # データベースにユーザー名があるかどうか確認する
         cur.execute("SELECT * FROM users WHERE user_id = ?", userid)
         rows = cur.fetchall()
 
