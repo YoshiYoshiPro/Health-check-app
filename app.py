@@ -58,11 +58,11 @@ def login():
         # ユーザー名が空ではないことを確認する
         userid = request.form.get("userid")
         if not userid:
-            return apology("ユーザーIDを入力してください")
+            return apology("login.html", "ユーザーIDを入力してください")
 
         # パスワードが空ではないことを確認する
         elif not request.form.get("password"):
-            return apology("パスワードを入力して下さい")
+            return apology("login.html", "パスワードを入力して下さい")
 
         # データベース接続処理　CS50を使わないバージョン
         conn = sqlite3.connect("health.db")
@@ -77,7 +77,7 @@ def login():
         if len(rows) != 1 or not check_password_hash(rows["hash"], request.form.get("password")):
             # ファイルを閉じる
             conn.close()
-            return apology("ユーザー名またはパスワードが間違っております。")
+            return apology("login.html", "ユーザー名またはパスワードが間違っております。")
 
         # ログインしたユーザーを記憶する
         session["user_id"] = rows["username"]
