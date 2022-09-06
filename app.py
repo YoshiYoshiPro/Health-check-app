@@ -190,15 +190,15 @@ def admin_login():
         conn.row_factory = dict_factory
         cur = conn.cursor()
 
-         # データベースにユーザー名があるかどうか確認する
-        cur.execute("SELECT * FROM users WHERE id_user = ?", (userid,))
+         # データベースに団体名があるかどうか確認する
+        cur.execute("SELECT * groups FROM group_id WHERE group_id = ?", (groupid,))
         rows = cur.fetchall()
 
-        # ユーザー名が存在し、次はパスワードが正しいか確認する。
-        if len(rows) != 1 or not check_password_hash(rows["hash"], request.form.get("password")):
+        # 団体が存在し、パスワードが正しいか確認する。
+        if len(rows) != 1 or not check_password_hash(rows["group_password"], request.form.get("password")):
             # ファイルを閉じる
             conn.close()
-            return apology("login.html", "ユーザー名またはパスワードが間違っております。")
+            return apology("admin_login.html", "団体IDまたはパスワードが間違っております。")
 
         # ログインしたユーザーを記憶する
         session["user_id"] = rows["username"]
