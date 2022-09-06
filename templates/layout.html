@@ -43,12 +43,15 @@
                         <ul class="navbar-nav ms-auto mt-2">
                             <li class="nav-item"><a class="nav-link" href="/logout">ログアウト</a></li>
                         </ul>
+                    {% else %}
                     <!-- ログイン前 -->
                         <ul class="navbar-nav ms-auto mt-2">
-                            <li class="nav-item"><a class="nav-link" href="/register">登録</a></li>
+                            <li class="nav-item"><a class="nav-link" href="/register">アカウント登録</a></li>
                             <li class="nav-item"><a class="nav-link" href="/login">ログイン</a></li>
+                            <li class="nav-item"><a class="nav-link" href="/login">グループ作成</a></li>
+                            <li class="nav-item"><a class="nav-link" href="/login">管理者ログイン</a></li>
                         </ul>
-
+                    {% endif %}
                 </div>
             </div>
         </nav>

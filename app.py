@@ -265,7 +265,7 @@ def adminid():
     conn.row_factory = dict_factory
     cur = conn.cursor()
 
-    groupid = cur.execute("SELECT group_id FROM groups WHERE group_name = ?", (session["group_name"],))
+    groupid = cur.execute("SELECT group_id FROM groups WHERE group_id = ?", (session["group_id"],))
 
     return render_template("admin_html", groupid=groupid)
 
