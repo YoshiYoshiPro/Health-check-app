@@ -58,14 +58,13 @@ def login():
             return apology("パスワードを入力して下さい")
 
         # データベース処理
-        sql = "SELECT * FROM users WHERE user_id = ?"
-        con = sqlite3.connect("health.db")
-        cur = con.cursor()
-         # データベースにユーザー名を問い合わせる
-        rows = cur.execute(sql, (userid)).fetchall()
+        conn = sqlite3.connect("health.db")
+        conn.row_factory = sqlite3.Row
+        cur = conn.cursor()
 
         # ユーザー名が存在し、次はパスワードが正しいか確認する。
-        if rows["user_id"] != userid or not check_password_hash(rows["hash"], request.form.get("password")):
+        cur.execute("SELECT * FROM users WHERE user_id = ?", userid)
+        rows = cur.fetchone()
             # ファイルを閉じる
             conn.close()
             return apology("ユーザー名またはパスワードが間違っております。")
