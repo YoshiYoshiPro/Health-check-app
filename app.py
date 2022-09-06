@@ -49,7 +49,8 @@ def login():
     if request.method == "POST":
 
         # ユーザー名が空ではないことを確認する
-        if not request.form.get("userid"):
+        userid = request.form.get("userid")
+        if not userid:
             return apology("ユーザーIDを入力してください")
 
         # パスワードが空ではないことを確認する
@@ -61,10 +62,10 @@ def login():
         db = conn.cursor()
 
         # データベースにユーザー名を問い合わせる
-        rows = db.execute("SELECT * FROM users WHERE user_id = ?", request.form.get("userid"))[0]
+        rows = db.execute("SELECT * FROM users WHERE user_id = ?", userid)[0]
 
         # ユーザー名が存在し、次はパスワードが正しいか確認する。
-        if rows["user_id"] != 1 or not check_password_hash(rows["hash"], request.form.get("password")):
+        if rows["user_id"] != userid or not check_password_hash(rows["hash"], request.form.get("password")):
             # ファイルを閉じる
             conn.close()
             return apology("ユーザー名またはパスワードが間違っております。")
