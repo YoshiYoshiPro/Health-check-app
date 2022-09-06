@@ -226,21 +226,17 @@ def register():
         if not password:
             return apology("register.html", "パスワードを入力してください")
 
-        confirmation = request.form.get('confirmation')
-        if not confirmation:
-            return apology("register.html", "確認パスワードを入力してください")
-
         # データベース接続
         conn = sqlite3.connect("health.db")
         conn.row_factory = dict_factory
         cur = conn.cursor()
 
          # データベースにユーザー名があるかどうか確認する
-        cur.execute("SELECT * FROM users WHERE id_user = ?", (groupid,))
+        cur.execute("SELECT * FROM groups WHERE groupid = ?", (groupid,))
         rows = cur.fetchall()
 
-        # ユーザー名が存在し、次はパスワードが正しいか確認する。
-        if len(rows) != 1 or not check_password_hash(rows["hash"], request.form.get("password")):
+        # 団体が存在し、パスワードが正しいか確認する。
+        if len(rows) != 1 or not check_password_hash(rows["group_password"], request.form.get("password")):
             # ファイルを閉じる
             conn.close()
             return apology("login.html", "ユーザー名またはパスワードが間違っております。")
