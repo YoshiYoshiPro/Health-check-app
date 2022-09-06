@@ -235,11 +235,9 @@ def register():
         conn.row_factory = dict_factory
         cur = conn.cursor()
 
-        #団体IDが既にあるかどうか
-        check_group = cur.execute("SELECT group_id FROM groups WHERE group_id = ?", (groupid,))
-        if not check_group:
-            conn.close()
-            return apology("register.html", "団体が存在しません")
+         # データベースにユーザー名があるかどうか確認する
+        cur.execute("SELECT * FROM users WHERE id_user = ?", (groupid,))
+        rows = cur.fetchall()
 
         # ユーザー名が存在し、次はパスワードが正しいか確認する。
         if len(rows) != 1 or not check_password_hash(rows["hash"], request.form.get("password")):
