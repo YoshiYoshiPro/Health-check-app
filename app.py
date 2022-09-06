@@ -203,7 +203,7 @@ def register():
         conn.commit()
         conn.close()
 
-        # リダイレクトでログイン画面に移動
+        # リダイレクトで団体IDを表示
         return redirect("/adminid")
 
     # getの場合は登録画面になります。
@@ -220,11 +220,11 @@ def register():
         # 空欄チェック
         groupid = request.form.get('groupid')
         if not groupid:
-            return apology("register.html", "団体IDを入力してください")
+            return apology("admin_login.html", "団体IDを入力してください")
 
         password = request.form.get('password')
         if not password:
-            return apology("register.html", "パスワードを入力してください")
+            return apology("admin_login.html", "パスワードを入力してください")
 
         # データベース接続
         conn = sqlite3.connect("health.db")
@@ -239,17 +239,11 @@ def register():
         if len(rows) != 1 or not check_password_hash(rows["group_password"], request.form.get("password")):
             # ファイルを閉じる
             conn.close()
-            return apology("login.html", "ユーザー名またはパスワードが間違っております。")
+            return apology("admin_login.html", "ユーザー名またはパスワードが間違っております。")
 
-        # データベースに登録 あとでもろもろ追加
-        newdata = (userid, username, password_hash)
-        cur.execute("INSERT INTO users (id_user, username, hash) VALUES(?, ?, ?)", (newdata))
-        conn.commit()
-        conn.close()
-
-        # リダイレクトでログイン画面に移動
-        return redirect("/login")
+        # どこかに移動（暫定）
+        return redirect("/")
 
     # getの場合は登録画面になります。
     else:
-        return render_template("register.html")
+        return render_template("admin_login.html")
