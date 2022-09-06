@@ -174,17 +174,53 @@ def register():
     if request.method == "POST":
 
         # 空欄チェック
+        groupname = request.form.get('groupname')
+        if not groupname:
+            return apology("register.html", "団体名を入力してください")
+
+        password = request.form.get('password')
+        if not password:
+            return apology("register.html", "パスワードを入力してください")
+
+        confirmation = request.form.get('confirmation')
+        if not confirmation:
+            return apology("register.html", "確認パスワードを入力してください")
+
+        # データベース接続
+        conn = sqlite3.connect("health.db")
+        conn.row_factory = dict_factory
+        cur = conn.cursor()
+
+        #パスワードと確認パスワードがかぶってないか確認
+        if not password == confirmation:
+            conn.close()
+            return apology("register.html", "パスワードが一致しません")
+        password_hash = generate_password_hash(password, method="sha256")
+
+        # データベースに登録 あとでもろもろ追加
+        newdata = (groupname, password_hash)
+        cur.execute("INSERT INTO groups (group_name, group_password) VALUES(?, ?)", (newdata))
+        conn.commit()
+        conn.close()
+
+        # リダイレクトでログイン画面に移動
+        return redirect("/adminid")
+
+    # getの場合は登録画面になります。
+    else:
+        return render_template("admin.html")
+
+# 登録画面
+@app.route("/register", methods=["GET", "POST"])
+def register():
+
+    # postで入ってきたらデータベースに登録の処理を実行
+    if request.method == "POST":
+
+        # 空欄チェック
         groupid = request.form.get('groupid')
         if not groupid:
             return apology("register.html", "団体IDを入力してください")
-
-        userid = request.form.get('userid')
-        if not userid:
-            return apology("register.html", "ユーザーIDを入力してください")
-
-        username = request.form.get('username')
-        if not username:
-            return apology("register.html", "名前を入力してください")
 
         password = request.form.get('password')
         if not password:
@@ -201,7 +237,7 @@ def register():
 
         #団体IDが既にあるかどうか
         check_group = cur.execute("SELECT group_id FROM groups WHERE group_id = ?", (groupid,))
-        if check_group:
+        if not check_group:
             conn.close()
             return apology("register.html", "団体が存在しません")
 
@@ -228,4 +264,4 @@ def register():
 
     # getの場合は登録画面になります。
     else:
-        return render_template("admin.html")
+        return render_template("register.html")
