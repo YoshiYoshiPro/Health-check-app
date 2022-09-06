@@ -276,7 +276,6 @@ def adminid():
 
 # 管理ページ
 @app.route("/admin_home")
-@login_required
 def admin_home():
 
     return render_template("admin_home.html")
