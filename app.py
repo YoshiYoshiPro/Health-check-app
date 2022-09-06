@@ -138,21 +138,27 @@ def register():
         #団体IDが既にあるかどうか
         check_group = cur.execute("SELECT group_id FROM groups WHERE group_id = ?", (groupid,))
         if check_group:
+            conn.close()
             return apology("register.html", "団体が存在しません")
 
         # ユーザーIDがかぶってないか確認。
         check_userid = cur.execute("SELECT id_user FROM users WHERE id_user = ?", (userid,))
         if check_userid:
+            conn.close()
             return apology("register.html", "既に登録済みではありませんか?")
 
         #パスワードと確認パスワードがかぶってないか確認
         if not password == confirmation:
+            conn.close()
             return apology("register.html", "パスワードが一致しません")
         password_hash = generate_password_hash(password, method="sha256")
 
         # データベースに登録 あとでもろもろ追加
         newdata = (userid, username, password_hash)
-        cur.execute("INSERT INTO users (id_user,username, hash) VALUES(?, ?, ?)", (userid, username, password_hash))
+        cur.execute("INSERT INTO users (id_user, username, hash) VALUES(?, ?, ?)", (newdata))
+        conn.commit()
+        conn.close()
+
         # リダイレクトでログイン画面に移動
         return redirect("/login")
 
