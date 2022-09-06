@@ -23,6 +23,7 @@
                     <span class="navbar-toggler-icon"></span>
                 </button>
                 <div class="collapse navbar-collapse" id="navbar">
+                    {% if session["user_id"] %}
                     <!-- 一般ユーザーログイン -->
                         <ul class="navbar-nav me-auto mt-2">
                             <li class="nav-item"><a class="nav-link" href="/input">体温入力</a></li>
@@ -31,7 +32,7 @@
                         <ul class="navbar-nav ms-auto mt-2">
                             <li class="nav-item"><a class="nav-link" href="/logout">ログアウト</a></li>
                         </ul>
-
+                    {% elif session["group_id"] %}
                     <!-- 管理者ログイン -->
                         <ul class="navbar-nav me-auto mt-2">
                             <li class="nav-item"><a class="nav-link" href="/input">体温入力</a></li>
