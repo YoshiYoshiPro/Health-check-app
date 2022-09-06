@@ -248,11 +248,10 @@ def admin_reg():
         cur.execute("INSERT INTO groups (group_name, group_password) VALUES(?, ?)", (newdata))
 
         # セッション取得のための処理
-        
-        cur.execute("SELECT * groups FROM group_id WHERE group_id = ?", (groupid,))
+
+        cur.execute("SELECT group_id FROM groups WHERE group_id = group_name & ", (groupid,))
         rows = cur.fetchall()
         # 団体が存在し、パスワードが正しいか確認する。
-        if len(rows) != 1 or not check_password_hash(rows["group_password"], request.form.get("password")):
 
         conn.commit()
         conn.close()
