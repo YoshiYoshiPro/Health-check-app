@@ -108,9 +108,13 @@ def register():
 
     # postで入ってきたらデータベースに登録の処理を実行
     if request.method == "POST":
-    register_row = ["groupid", "userid", "username", "password", "confirmation"]
+        register_rows = ["groupid", "userid", "username", "password", "confirmation"]
 
-    for 
+        for register_row in register_rows:
+                userid = request.form.get("userid")
+                if not userid:
+                    return apology("register.html", "入力していない項目があります")
+
 
 
         # ユーザー名が空ではないことを確認
