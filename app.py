@@ -18,10 +18,6 @@ app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
 
-# データベースの読み込み
-conn = sqlite3.connect("health.db")
-db = conn.cursor()
-
 @app.after_request
 def after_request(response):
     """Ensure responses aren't cached"""
@@ -46,7 +42,7 @@ def index():
 @app.route("/login", methods=["GET", "POST"])
 def login():
 
-    # user_id をリセット
+    # user_id(セッション) をリセット
     session.clear()
 
     # POST経由の場合
@@ -60,11 +56,16 @@ def login():
         elif not request.form.get("password"):
             return apology("パスワードを入力して下さい")
 
+        # データベースの読み込み
+        conn = sqlite3.connect("health.db")
+        db = conn.cursor()
+
         # データベースにユーザー名を問い合わせる
         rows = db.execute("SELECT * FROM users WHERE user_id = ?", request.form.get("userid"))
 
         # ユーザー名が存在し、次はパスワードが正しいか確認する。
         if len(rows) != 1 or not check_password_hash(rows[0]["hash"], request.form.get("password")):
+            conn.close()
             return apology("ユーザー名またはパスワードが間違っております。")
 
         # ログインしたユーザーを記憶する
