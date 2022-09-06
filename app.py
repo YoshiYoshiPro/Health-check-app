@@ -57,7 +57,8 @@ def login():
         elif not request.form.get("password"):
             return apology("パスワードを入力して下さい")
 
-        # データベースの読み込み
+        # データベース処理
+        sql = "SELECT * FROM users WHERE user_id = ?"
         conn = sqlite3.connect("health.db")
         db = conn.cursor()
 
