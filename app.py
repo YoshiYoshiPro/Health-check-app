@@ -117,17 +117,22 @@ def register():
         # ユーザーIDが空ではないことを確認
         userid = request.form.get('userid')
         if not userid:
-            return apology("register.html", "団体IDを入力してください")
+            return apology("register.html", "ユーザーIDを入力してください")
+
+        # 名前が空ではないことを確認
+        username = request.form.get('username')
+        if not username:
+            return apology("register.html", "名前を入力してください")
 
         # パスワードが空ではないことを確認
         password = request.form.get('password')
         if not password:
-            return apology("must provide password")
+            return apology("register.html", "パスワードを入力してください")
 
         # 確認パスワードが空ではないか確認
         confirmation = request.form.get('confirmation')
         if not confirmation:
-            return apology("must provide password")
+            return apology("register.html", "確認パスワードを入力してください")
 
         # ユーザーIDがかぶってないか確認。
         check = db.execute("SELECT username FROM users WHERE username = ?", username)
