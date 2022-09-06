@@ -66,7 +66,7 @@ def login():
 
         # ユーザー名が存在し、次はパスワードが正しいか確認する。
         if len(rows) != 1 or not check_password_hash(rows[0]["hash"], request.form.get("password")):
-            return apology("invalid username and/or password", 403)
+            return apology("ユーザー名またはパスワードが間違っております。", 403)
 
         # ログインしたユーザーを記憶する
         session["user_id"] = rows[0]["id"]
