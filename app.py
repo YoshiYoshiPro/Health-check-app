@@ -70,7 +70,7 @@ def login():
         cur = conn.cursor()
 
          # データベースにユーザー名があるかどうか確認する
-        cur.execute("SELECT * FROM users WHERE user_id = ?", userid)
+        cur.execute("SELECT * FROM users WHERE user_id = ?", (userid,))
         rows = cur.fetchall()
 
         # ユーザー名が存在し、次はパスワードが正しいか確認する。
