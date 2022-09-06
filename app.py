@@ -240,13 +240,13 @@ def admin_reg():
         #パスワードと確認パスワードがかぶってないか確認
         if not password == confirmation:
             conn.close()
-            return apology("admin_reg.html", "パスワードが一致しません")
+            return apology("admin_reg.html", "パスワードと確認パスワードが一致しません")
         password_hash = generate_password_hash(password, method="sha256")
 
         # データベースに登録 あとでもろもろ追加
         newdata = (groupname, password_hash)
         cur.execute("INSERT INTO groups (group_name, group_password) VALUES(?, ?)", (newdata))
-        session["group_id"] = rows["group_id"]
+
         conn.commit()
         conn.close()
 
