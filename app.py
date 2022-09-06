@@ -167,8 +167,8 @@ def register():
         return render_template("register.html")
 
 # 管理者ログイン
-@app.route("/admin_login", methods=["GET", "POST"])
-def admin_login():
+@app.route("/adminlogin", methods=["GET", "POST"])
+def adminlogin():
 
     # セッションをリセット
     session.clear()
@@ -179,11 +179,11 @@ def admin_login():
         # ユーザー名が空ではないことを確認する
         groupid = request.form.get("groupid")
         if not groupid:
-            return apology("admin_login.html", "団体IDを入力してください")
+            return apology("adminlogin.html", "団体IDを入力してください")
 
         # パスワードが空ではないことを確認する
         elif not request.form.get("password"):
-            return apology("admin_login.html", "パスワードを入力してください")
+            return apology("adminlogin.html", "パスワードを入力してください")
 
         # データベース接続処理　CS50を使わないバージョン
         conn = sqlite3.connect("health.db")
@@ -198,7 +198,7 @@ def admin_login():
         if len(rows) != 1 or not check_password_hash(rows["group_password"], request.form.get("password")):
             # ファイルを閉じる
             conn.close()
-            return apology("admin_login.html", "団体IDまたはパスワードが間違っております。")
+            return apology("adminlogin.html", "団体IDまたはパスワードが間違っております。")
 
         # ログインした団体名を記憶する
         session["group_id"] = rows["group_id"]
@@ -210,7 +210,7 @@ def admin_login():
 
     # GET経由ならログイン画面を表示させる
     else:
-        return render_template("admin_login.html")
+        return render_template("adminlogin.html")
 
 # グループ作成
 @app.route("/adminreg", methods=["GET", "POST"])
