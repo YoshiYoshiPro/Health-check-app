@@ -62,7 +62,7 @@ def login():
         con = sqlite3.connect("health.db")
         cur = con.cursor()
          # データベースにユーザー名を問い合わせる
-        rows = cur.execute(sql, (userid)).fetchone
+        rows = cur.execute(sql, (userid)).fetchall()
 
         # ユーザー名が存在し、次はパスワードが正しいか確認する。
         if rows[0] != userid or not check_password_hash(rows[2], request.form.get("password")):
