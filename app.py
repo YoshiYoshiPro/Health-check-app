@@ -13,7 +13,7 @@ app = Flask(__name__)
 # Ensure templates are auto-reloaded 必要？
 app.config["TEMPLATES_AUTO_RELOAD"] = True
 
-# Configure session to use filesystem (instead of signed cookies)　必要？
+# Configure session to use filesystem (instead of signed cookies) 必要？
 app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
@@ -69,7 +69,7 @@ def login():
         conn.row_factory = dict_factory
         cur = conn.cursor()
 
-         # データベースにユーザー名があるかどうか確認する
+        # データベースにユーザー名があるかどうか確認する
         cur.execute("SELECT * FROM users WHERE id_user = ?", (userid,))
         rows = cur.fetchall()
 
@@ -190,7 +190,7 @@ def adminlogin():
         conn.row_factory = dict_factory
         cur = conn.cursor()
 
-         # データベースに団体名があるかどうか確認する
+        # データベースに団体名があるかどうか確認する
         cur.execute("SELECT * groups FROM group_id WHERE group_id = ?", (groupid,))
         rows = cur.fetchall()
 
