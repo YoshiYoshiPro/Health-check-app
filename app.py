@@ -37,12 +37,11 @@ def dict_factory(cursor, row):
 @app.route("/")
 @login_required
 def index():
-
-    """
+    
     # ログイン状態の確認
     if not session:
         redirect("/login")
-    """
+
     return render_template("input.html")
 
 # ログイン画面

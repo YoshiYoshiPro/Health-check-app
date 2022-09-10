@@ -7,7 +7,8 @@
 {% block main %}
     <form action="" method="post">
         <div class="mb-3">
-            <input autocomplete="off" autofocus class="form-control mx-auto w-auto" name="body_temperature" placeholder="体温を入力してください" type="text">
+            <p>体温</p> <br>
+                <input autocomplete="off" autofocus class="form-control mx-auto w-auto" name="body_temperature" placeholder="体温を入力してください" type="text">
         </div>
         <div class="mb-3">
             <p>鼻水・鼻づまりがないか <br>
@@ -32,7 +33,7 @@
             </p>
         </div>
         <div class="mb-3">
-            <input autocomplete="off" class="form-control mx-auto w-auto" name="memo" placeholder="備考" type="text">
+            <textarea name="memo" rows="4" cols="40" placeholder="備考"></textarea>
         </div>
         <button class="btn btn-primary" type="submit">送信</button>
     </form>
