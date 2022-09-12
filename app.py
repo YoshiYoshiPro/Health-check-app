@@ -63,7 +63,7 @@ def login():
         elif not request.form.get("password"):
             return apology("login.html", "パスワードを入力して下さい")
 
-        # データベース接続処理　CS50を使わないバージョン
+        # データベース接続処理 CS50を使わないバージョン
         conn = sqlite3.connect("health.db")
         conn.row_factory = dict_factory
         cur = conn.cursor()
