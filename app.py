@@ -5,6 +5,7 @@ from flask import Flask, flash, redirect, render_template, url_for, request, ses
 from flask_session import Session
 from tempfile import mkdtemp
 from werkzeug.security import check_password_hash, generate_password_hash
+import datetime
 
 from helpers import apology, login_required, admin_required
 
@@ -37,7 +38,7 @@ def dict_factory(cursor, row):
 @app.route("/")
 @login_required
 def index():
-    
+
     # ログイン状態の確認
     if not session:
         redirect("/login")
@@ -276,7 +277,61 @@ def adminid():
 
 # 管理ページ
 @app.route("/adminhome")
-@admin_required
+# @admin_required
 def adminhome():
+    # データベースを設定
+    conn = sqlite3.connect("health.db")
+    conn.row_factory = dict_factory
+    cur = conn.cursor()
 
-    return render_template("adminhome.html")
+    # 権限を確認　dbのカラムを仮で「role」としています、role内も0を一般、1を管理者と仮定して作成しています
+    user_id = session["user_id"]
+    cur.execute("SELECT role FROM users WHERE user_id = ?;", (user_id,))
+    role = cur.fetchall()
+
+    if role[0]["role"] == 1:
+        # 日付の取得
+        date = datetime.date.today()
+        today = "{0:%Y/%m/%d}".format(date)
+        date = str(date)
+
+        # 発熱の閾値設定
+        temperature = 37.5
+
+        # 確認用(仮データの日付)　発熱者、体調不良者、未記入者のデータベースのdate変数を変えてください
+        sample = "2022-09-11"
+
+        # 発熱者
+        cur.execute("SELECT users.user_name, records.body_temperature FROM records INNER JOIN users ON records.user_id = users.user_id WHERE (records.record_date = ?) and (records.body_temperature >= ?);", (sample, temperature))
+        fevers = cur.fetchall()
+        # 体調不良者
+        # bad = cur.execute("SELECT users.user_name, FROM records INNER JOIN users ON records.user_id = users.user_id WHERE (records.record_date = ?) and (records.body_temperature >= ?);", (date, temperature))
+
+        # 未記入者
+        cur.execute("SELECT user_name from users;")
+        user_sql = cur.fetchall()
+        cur.execute("SELECT users.user_name FROM records INNER JOIN users ON records.user_id = users.user_id WHERE record_date = ?;", (sample,))
+        recorder_sql = cur.fetchall()
+
+        user_num = len(user_sql)
+        recorder_num = len(recorder_sql)
+
+        user_list = []
+        recorder = []
+
+        for i in range(user_num):
+            user_list.append(user_sql[i]["user_name"])
+
+        for j in range(recorder_num):
+            recorder.append(recorder_sql[j]["user_name"])
+
+
+        no_record = set(user_list) - set(recorder)
+
+        conn.close()
+        return render_template("adminhome.html", date = today, fevers = fevers, no_records = no_record)
+
+    else:
+        conn.close()
+        return render_template("adminerro.html", "管理者権限がありません。")
+
