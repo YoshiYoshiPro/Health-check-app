@@ -1,0 +1,15 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    グループID
+{% endblock %}
+
+{% block main %}
+    <h3>このグループのIDはこちらです</h3>
+    <div class="parallel">
+        <p id="copyTarget" style="color: red;"><strong>{{ group_id }}</strong></p>
+        <button onclick="copy()">コピー</button>
+    </div>
+    
+    
+{% endblock %}

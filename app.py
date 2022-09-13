@@ -1,7 +1,7 @@
 import os
 
 import sqlite3
-from flask import Flask, flash, redirect, render_template, request, session
+from flask import Flask, flash, redirect, render_template, url_for, request, session
 from flask_session import Session
 from tempfile import mkdtemp
 from werkzeug.security import check_password_hash, generate_password_hash
@@ -63,7 +63,7 @@ def login():
         elif not request.form.get("password"):
             return apology("login.html", "パスワードを入力して下さい")
 
-        # データベース接続処理　CS50を使わないバージョン
+        # データベース接続処理 CS50を使わないバージョン
         conn = sqlite3.connect("health.db")
         conn.row_factory = dict_factory
         cur = conn.cursor()
