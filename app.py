@@ -1,10 +1,12 @@
 import os
 
 import sqlite3
+import random
 from flask import Flask, flash, redirect, render_template, url_for, request, session
 from flask_session import Session
 from tempfile import mkdtemp
 from werkzeug.security import check_password_hash, generate_password_hash
+
 
 from helpers import apology, login_required, admin_required
 
@@ -286,6 +288,9 @@ def adminhome():
 @admin_required
 def groupId():
 
+    # グループIDの生成（5桁の数字）
+    groupid = random.randint(10000, 99999)
+
     # データベースに接続
     conn = sqlite3.connect("health.db")
     conn.row_factory = dict_factory
@@ -294,7 +299,12 @@ def groupId():
     # 一致するグループIDがあるか確認
     groupid_check = cur.execute("SELECT group_id FROM groups WHERE group_id = ?", groupid)
 
-    if groupid_check is NULL:
+    # グループIDがかぶらないようにIDを生成
+    while True:
+        if groupid_check is not None:
+            groupid = random.randint(10000, 99999)
 
-    
+        else:
+            break
+
     return render_template("group_id.html", groupid=groupid)
