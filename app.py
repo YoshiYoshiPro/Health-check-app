@@ -277,7 +277,7 @@ def adminid():
 
 # 管理ページ
 @app.route("/adminhome")
-# @admin_required
+@admin_required
 def adminhome():
     # データベースを設定
     conn = sqlite3.connect("health.db")
@@ -335,3 +335,33 @@ def adminhome():
         conn.close()
         return render_template("adminerro.html", "管理者権限がありません。")
 
+@app.route("/adminrole")
+@admin_required
+def adminrole():
+    # データベースを設定
+    conn = sqlite3.connect("health.db")
+    conn.row_factory = dict_factory
+    cur = conn.cursor()
+
+    # 権限を確認　dbのカラムを仮で「role」としています、role内も0を一般、1を管理者と仮定して作成しています
+    user_id = session["user_id"]
+    cur.execute("SELECT role FROM users WHERE user_id = ?;", (user_id,))
+    role = cur.fetchall()
+
+    # ロールの確認
+    if role[0]["role"] == 1:
+
+        #グループidの取得(もしsessionで取得できるならsessionで取得)
+        # group_id = session[group_id]
+        cur.execute("SELECT group_id FROM users WHERE user_id = ?;", (session["user_id"],))
+        group_id = cur.fetchall()
+
+        # メンバー一覧の作成
+        cur.execute("SELECT user_name user_id role FROM users WHERE group_id = ?;", (group_id))
+        member_list = cur.fetchall()
+
+        return render_template("adminrole.html", lists = member_list)
+
+    else:
+        conn.close()
+        return render_template("adminerro.html", "管理者権限がありません。")

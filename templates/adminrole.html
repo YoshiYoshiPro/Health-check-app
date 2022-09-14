@@ -1,0 +1,35 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    権限編集
+{% endblock %}
+
+{% block main %}
+
+
+<div>
+    <p>チームメンバーリスト</p><br>
+    <table>
+        <thead>
+            <tr>
+                <th>ユーザーネーム</th>
+                <th>ID</th>
+                <th>権限</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for list in lists %}
+            <tr>
+                <td>{{ list["user_name"] }}</td>
+                <td>{{ list["user_id"] }}</td>
+                <td>{{ list["role"] }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+</table>
+
+</div>
+
+
+
+{% endblock %}
