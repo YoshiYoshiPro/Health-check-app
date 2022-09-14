@@ -280,3 +280,21 @@ def adminid():
 def adminhome():
 
     return render_template("adminhome.html")
+
+# グループID通知画面
+@app.route("/groupid")
+@admin_required
+def groupId():
+
+    # データベースに接続
+    conn = sqlite3.connect("health.db")
+    conn.row_factory = dict_factory
+    cur = conn.cursor()
+
+    # 一致するグループIDがあるか確認
+    groupid_check = cur.execute("SELECT group_id FROM groups WHERE group_id = ?", groupid)
+
+    if groupid_check is NULL:
+
+    
+    return render_template("group_id.html", groupid=groupid)
