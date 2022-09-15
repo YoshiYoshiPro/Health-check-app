@@ -337,10 +337,66 @@ def adminhome():
 @app.route("/adminrole", methods=["GET", "POST"])
 @admin_required
 def adminrole():
+    # POSTで入ってきたら権限を変更する
     if request.method == "POST":
-        # POSTで入ってきたら権限を変更する
+
+        # ユーザーIDが入力されていなかったらエラーを表示する
         if not request.form.get("user_id"):
-            return
+            return render_template("adminerror.html", message = "ユーザーIDを入力してください")
+
+        user_id = request.form.get("user_id")
+        role = request.form.get("role")
+
+        # 受け取ったユーザーIDが数字であることを確認
+        if str.isdigit(user_id) == False:
+            return render_template("adminerror.html", message = "ユーザーIDは数字のみで入力してください")
+
+        # 受け取ったロールを変換
+        if role == "admin":
+            role = 1
+
+        else:
+            role = 0
+
+        # データベースを設定
+        conn = sqlite3.connect("health.db")
+        conn.row_factory = dict_factory
+        cur = conn.cursor()
+
+        # 送信者のユーザーIDを取得
+        # admin_user_id = session["user_id"]
+        # sessionが使えないため仮置き
+        admin_user_id = 12345
+
+        #グループidの取得(もしsessionで取得できるならsessionで取得)
+        # group_id = session["group_id"]
+
+        cur.execute("SELECT group_id FROM users WHERE user_id = ?;", (admin_user_id,))
+        group_id = cur.fetchall()
+
+        # 指定されたidのユーザーが管理者と同じグループに存在しているか確認
+        cur.execute("SELECT user_id FROM users WHERE user_id = ? and group_id = ?;", (int(user_id), group_id[0]["group_id"]))
+        user = cur.fetchall()
+
+        if len(user) == 0:
+            return render_template("adminerror.html", message = "このユーザーは存在しないか、このグループに所属していません")
+
+        # roleを変更
+        cur.execute("UPDATE users SET role = ? WHERE user_id = ?;", (role, int(user_id)))
+
+        # メンバー一覧の作成
+        cur.execute("SELECT user_name, user_id, role FROM users WHERE group_id = ?;", (group_id[0]["group_id"],))
+        member_list = cur.fetchall()
+
+        for i in range(len(member_list)):
+            if member_list[i]["role"] == 1:
+                member_list[i]["role"] = "管理者"
+            else:
+                member_list[i]["role"] = "一般"
+
+        conn.close()
+        return render_template("adminrole.html", lists = member_list, role = group_id[0]["group_id"])
+
     else:
         # データベースを設定
         conn = sqlite3.connect("health.db")
@@ -358,7 +414,7 @@ def adminrole():
         if role[0]["role"] == 1:
 
             #グループidの取得(もしsessionで取得できるならsessionで取得)
-            # group_id = session[group_id]
+            # group_id = session["group_id"]
             cur.execute("SELECT group_id FROM users WHERE user_id = ?;", (user_id,))
             group_id = cur.fetchall()
 
@@ -372,6 +428,7 @@ def adminrole():
                 else:
                     member_list[i]["role"] = "一般"
 
+            conn.close()
             return render_template("adminrole.html", lists = member_list)
 
         else:
