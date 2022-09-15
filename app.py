@@ -20,6 +20,11 @@ app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
 
+# グループIDを生成する関数（数字5桁）
+def id_generator():
+    groupid = random.randint(10000, 99999)
+    return groupid
+
 @app.after_request
 def after_request(response):
     """Ensure responses aren't cached"""
@@ -288,23 +293,25 @@ def adminhome():
 @admin_required
 def groupId():
 
-    # グループIDの生成（5桁の数字）
-    groupid = random.randint(10000, 99999)
-
     # データベースに接続
     conn = sqlite3.connect("health.db")
     conn.row_factory = dict_factory
     cur = conn.cursor()
 
-    # 一致するグループIDがあるか確認
-    groupid_check = cur.execute("SELECT group_id FROM groups WHERE group_id = ?", groupid)
-
-    # グループIDがかぶらないようにIDを生成
+    # グループIDがかぶらないようにIDを生成するループ処理
     while True:
-        if groupid_check is not None:
-            groupid = random.randint(10000, 99999)
+        # グループIDを生成
+        groupid = id_generator()
 
-        else:
+        # 一致するグループIDがあるか確認
+        groupid_check = cur.execute("SELECT group_id FROM groups WHERE group_id = ?", groupid)
+
+        # グループIDが重複していない場合
+        if groupid_check is None:
             break
+
+        # グループIDが重複している場合
+        else:
+            continue
 
     return render_template("group_id.html", groupid=groupid)
