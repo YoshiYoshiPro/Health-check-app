@@ -279,7 +279,6 @@ def adminid():
 @app.route("/adminhome")
 @admin_required
 def adminhome():
-    # データベースを設定
     conn = sqlite3.connect("health.db")
     conn.row_factory = dict_factory
     cur = conn.cursor()
@@ -333,35 +332,48 @@ def adminhome():
 
     else:
         conn.close()
-        return render_template("adminerro.html", "管理者権限がありません。")
+        return render_template("adminerror.html", message = "管理者権限がありません。")
 
-@app.route("/adminrole")
+@app.route("/adminrole", methods=["GET", "POST"])
 @admin_required
 def adminrole():
-    # データベースを設定
-    conn = sqlite3.connect("health.db")
-    conn.row_factory = dict_factory
-    cur = conn.cursor()
-
-    # 権限を確認　dbのカラムを仮で「role」としています、role内も0を一般、1を管理者と仮定して作成しています
-    user_id = session["user_id"]
-    cur.execute("SELECT role FROM users WHERE user_id = ?;", (user_id,))
-    role = cur.fetchall()
-
-    # ロールの確認
-    if role[0]["role"] == 1:
-
-        #グループidの取得(もしsessionで取得できるならsessionで取得)
-        # group_id = session[group_id]
-        cur.execute("SELECT group_id FROM users WHERE user_id = ?;", (session["user_id"],))
-        group_id = cur.fetchall()
-
-        # メンバー一覧の作成
-        cur.execute("SELECT user_name user_id role FROM users WHERE group_id = ?;", (group_id))
-        member_list = cur.fetchall()
-
-        return render_template("adminrole.html", lists = member_list)
-
+    if request.method == "POST":
+        # POSTで入ってきたら権限を変更する
+        if not request.form.get("user_id"):
+            return
     else:
-        conn.close()
-        return render_template("adminerro.html", "管理者権限がありません。")
+        # データベースを設定
+        conn = sqlite3.connect("health.db")
+        conn.row_factory = dict_factory
+        cur = conn.cursor()
+
+        # 権限を確認　dbのカラムを仮で「role」としています、role内も0を一般、1を管理者と仮定して作成しています
+        # user_id = session["user_id"]
+        # user_idを仮置き
+        user_id = 12345
+        cur.execute("SELECT role FROM users WHERE user_id = ?;", (user_id,))
+        role = cur.fetchall()
+
+        # ロールの確認
+        if role[0]["role"] == 1:
+
+            #グループidの取得(もしsessionで取得できるならsessionで取得)
+            # group_id = session[group_id]
+            cur.execute("SELECT group_id FROM users WHERE user_id = ?;", (user_id,))
+            group_id = cur.fetchall()
+
+            # メンバー一覧の作成
+            cur.execute("SELECT user_name, user_id, role FROM users WHERE group_id = ?;", (group_id[0]["group_id"],))
+            member_list = cur.fetchall()
+
+            for i in range(len(member_list)):
+                if member_list[i]["role"] == 1:
+                    member_list[i]["role"] = "管理者"
+                else:
+                    member_list[i]["role"] = "一般"
+
+            return render_template("adminrole.html", lists = member_list)
+
+        else:
+            conn.close()
+            return render_template("adminerror.html", message = "管理者権限がありません。")
