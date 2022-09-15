@@ -8,16 +8,21 @@
 
 <p>チームメンバーの管理者に設定することができます。</p>
 
+<p>{{ role }}</p>
+
 <div>
-    <form action="/form" method="post">
+    <form action="/adminrole" method="post">
         <p>ユーザーID</p>
-        <input type="text" name="user_id" value="User ID">
+        <input type="text" name="user_id">
         <p>権限</p>
         <select name="role">
             <option value="admin" selected>管理者</option>
             <option value="ippan">一般</option>
         </select>
+        <br>
+        <button type="submit">変更</button>
     </form>
+    <br>
 </div>
 
 
