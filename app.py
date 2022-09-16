@@ -1,11 +1,14 @@
 import os
 
 import sqlite3
+import random
+import string
 from flask import Flask, flash, redirect, render_template, url_for, request, session
 from flask_session import Session
 from tempfile import mkdtemp
 from werkzeug.security import check_password_hash, generate_password_hash
 import datetime
+
 
 from helpers import apology, login_required, admin_required
 
@@ -18,6 +21,19 @@ app.config["TEMPLATES_AUTO_RELOAD"] = True
 app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
+
+# グループIDを生成する関数（頭文字1文字と数字5桁）
+def id_generator():
+    text = f'{random.randrange(1, 10**5):05}'
+    uppercase_list = random.sample(string.ascii_uppercase, 1)
+
+    # リスト型 → str型
+    uppercase = ''.join(uppercase_list)
+
+    # 文字と数字を連結
+    text = uppercase + text
+    
+    return text
 
 @app.after_request
 def after_request(response):
@@ -185,7 +201,7 @@ def adminlogin():
         elif not request.form.get("password"):
             return apology("adminlogin.html", "パスワードを入力してください")
 
-        # データベース接続処理　CS50を使わないバージョン
+        # データベース接続処理 CS50を使わないバージョン
         conn = sqlite3.connect("health.db")
         conn.row_factory = dict_factory
         cur = conn.cursor()
@@ -283,7 +299,7 @@ def adminhome():
     conn.row_factory = dict_factory
     cur = conn.cursor()
 
-    # 権限を確認　dbのカラムを仮で「role」としています、role内も0を一般、1を管理者と仮定して作成しています
+    # 権限を確認 dbのカラムを仮で「role」としています、role内も0を一般、1を管理者と仮定して作成しています
     user_id = session["user_id"]
     cur.execute("SELECT role FROM users WHERE user_id = ?;", (user_id,))
     role = cur.fetchall()
@@ -334,6 +350,7 @@ def adminhome():
         conn.close()
         return render_template("adminerror.html", message = "管理者権限がありません。")
 
+
 @app.route("/adminrole", methods=["GET", "POST"])
 @admin_required
 def adminrole():
@@ -354,7 +371,6 @@ def adminrole():
         # 受け取ったロールを変換
         if role == "admin":
             role = 1
-
         else:
             role = 0
 
@@ -403,7 +419,7 @@ def adminrole():
         conn.row_factory = dict_factory
         cur = conn.cursor()
 
-        # 権限を確認　dbのカラムを仮で「role」としています、role内も0を一般、1を管理者と仮定して作成しています
+        # 権限を確認 dbのカラムを仮で「role」としています、role内も0を一般、1を管理者と仮定して作成しています
         # user_id = session["user_id"]
         # user_idを仮置き
         user_id = 12345
@@ -434,3 +450,32 @@ def adminrole():
         else:
             conn.close()
             return render_template("adminerror.html", message = "管理者権限がありません。")
+
+
+# グループID通知画面
+@app.route("/groupid")
+@admin_required
+def groupId():
+
+    # データベースに接続
+    conn = sqlite3.connect("health.db")
+    conn.row_factory = dict_factory
+    cur = conn.cursor()
+
+    # グループIDがかぶらないようにIDを生成するループ処理
+    while True:
+        # グループIDを生成
+        groupid = id_generator()
+
+        # 一致するグループIDがあるか確認
+        groupid_check = cur.execute("SELECT group_id FROM groups WHERE group_id = ?", groupid)
+
+        # グループIDが重複していない場合
+        if groupid_check is None:
+            break
+
+        # グループIDが重複している場合
+        else:
+            continue
+
+    return render_template("group_id.html", groupid=groupid)
