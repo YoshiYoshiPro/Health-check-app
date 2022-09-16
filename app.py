@@ -2,6 +2,7 @@ import os
 
 import sqlite3
 import random
+import string
 from flask import Flask, flash, redirect, render_template, url_for, request, session
 from flask_session import Session
 from tempfile import mkdtemp
@@ -20,10 +21,18 @@ app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
 
-# グループIDを生成する関数（数字5桁）
+# グループIDを生成する関数（頭文字1文字と数字5桁）
 def id_generator():
-    groupid = random.randint(10000, 99999)
-    return groupid
+    text = f'{random.randrange(1, 10**5):05}'
+    uppercase_list = random.sample(string.ascii_uppercase, 1)
+
+    # リスト型 → str型
+    uppercase = ''.join(uppercase_list)
+
+    # 文字と数字を連結
+    text = uppercase + text
+    
+    return text
 
 @app.after_request
 def after_request(response):
