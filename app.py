@@ -10,7 +10,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 import datetime
 
 
-from helpers import apology, login_required, admin_required
+from helpers import apology, login_required
 
 app = Flask(__name__)
 
@@ -32,7 +32,7 @@ def id_generator():
 
     # 文字と数字を連結
     text = uppercase + text
-    
+
     return text
 
 @app.after_request
@@ -43,12 +43,19 @@ def after_request(response):
     response.headers["Pragma"] = "no-cache"
     return response
 
-# sqliteを辞書型に変換
+# 取り出したSQliteデータを辞書型に変換
 def dict_factory(cursor, row):
     d = {}
     for idx, col in enumerate(cursor.description):
         d[col[0]] = row[idx]
     return d
+
+
+# 入力の空欄チェック
+def input_check(inputtext, html, message):
+    if not inputtext:
+        return apology(html, message)
+
 
 # 体温報告画面
 @app.route("/")
@@ -73,30 +80,28 @@ def login():
 
         # ユーザー名が空ではないことを確認する
         userid = request.form.get("userid")
-        if not userid:
-            return apology("login.html", "ユーザーIDを入力してください")
+        input_check(userid,"login.html", "ユーザーIDを入力してください")
 
         # パスワードが空ではないことを確認する
-        elif not request.form.get("password"):
-            return apology("login.html", "パスワードを入力して下さい")
+        input_check(request.form.get("password"), "login.html", "パスワードを入力して下さい")
 
-        # データベース接続処理 CS50を使わないバージョン
+        # データベース接続処理
         conn = sqlite3.connect("health.db")
         conn.row_factory = dict_factory
         cur = conn.cursor()
 
         # データベースにユーザー名があるかどうか確認する
-        cur.execute("SELECT * FROM users WHERE id_user = ?", (userid,))
+        cur.execute("SELECT * FROM users WHERE user_id = ?", (userid,))
         rows = cur.fetchall()
 
         # ユーザー名が存在し、次はパスワードが正しいか確認する。
-        if len(rows) != 1 or not check_password_hash(rows["hash"], request.form.get("password")):
+        if len(rows) != 1 or not check_password_hash(rows[0]["hash"], request.form.get("password")):
             # ファイルを閉じる
             conn.close()
             return apology("login.html", "ユーザー名またはパスワードが間違っております。")
 
         # ログインしたユーザーを記憶する
-        session["user_id"] = rows["username"]
+        session["user_id"] = rows[0]["user_id"]
         # ファイルを閉じる
         conn.close()
         # ユーザーを体温報告ページに移動させる。
@@ -118,60 +123,46 @@ def logout():
     return redirect("/")
 
 
-# 登録画面
+# アカウント登録画面
 @app.route("/register", methods=["GET", "POST"])
 def register():
 
     # postで入ってきたらデータベースに登録の処理を実行
     if request.method == "POST":
 
-        # 空欄チェック
-        groupid = request.form.get('groupid')
-        if not groupid:
-            return apology("register.html", "団体IDを入力してください")
-
         userid = request.form.get('userid')
-        if not userid:
-            return apology("register.html", "ユーザーIDを入力してください")
+        input_check(userid,"register.html", "ユーザーIDを入力してください")
 
         username = request.form.get('username')
-        if not username:
-            return apology("register.html", "名前を入力してください")
+        input_check(username, "register.html", "名前を入力してください")
 
         password = request.form.get('password')
-        if not password:
-            return apology("register.html", "パスワードを入力してください")
+        input_check(password, "register.html", "パスワードを入力してください")
 
         confirmation = request.form.get('confirmation')
-        if not confirmation:
-            return apology("register.html", "確認パスワードを入力してください")
+        input_check(confirmation, "register.html", "確認パスワードを入力してください")
 
         # データベース接続
         conn = sqlite3.connect("health.db")
         conn.row_factory = dict_factory
         cur = conn.cursor()
 
-        #団体IDが既にあるかどうか
-        check_group = cur.execute("SELECT group_id FROM groups WHERE group_id = ?", (groupid,))
-        if not check_group:
-            conn.close()
-            return apology("register.html", "団体が存在しません")
-
         # ユーザーIDがかぶってないか確認。
-        check_userid = cur.execute("SELECT id_user FROM users WHERE id_user = ?", (userid,))
-        if check_userid:
+        cur.execute("SELECT user_id FROM users WHERE user_id = ?", (userid,))
+        rows = cur.fetchall()
+        if rows:
             conn.close()
-            return apology("register.html", "既に登録済みではありませんか?")
+            return apology("register.html", "入力されたユーザーIDは既に登録済みです。")
 
-        #パスワードと確認パスワードがかぶってないか確認
+        #パスワードと確認パスワードが同じかどうか確認
         if not password == confirmation:
             conn.close()
             return apology("register.html", "パスワードが一致しません")
         password_hash = generate_password_hash(password, method="sha256")
 
-        # データベースに登録 あとでもろもろ追加
+        # データベースに登録
         newdata = (userid, username, password_hash,)
-        cur.execute("INSERT INTO users (id_user, username, hash) VALUES(?, ?, ?)", (newdata))
+        cur.execute("INSERT INTO users (user_id, username, hash) VALUES(?, ?, ?)", (newdata))
         conn.commit()
         conn.close()
 
@@ -182,98 +173,91 @@ def register():
     else:
         return render_template("register.html")
 
-# 管理者ログイン
-@app.route("/adminlogin", methods=["GET", "POST"])
-def adminlogin():
-
-    # セッションをリセット
-    session.clear()
-
-    # POST経由の場合
-    if request.method == "POST":
-
-        # ユーザー名が空ではないことを確認する
-        groupid = request.form.get("groupid")
-        if not groupid:
-            return apology("adminlogin.html", "団体IDを入力してください")
-
-        # パスワードが空ではないことを確認する
-        elif not request.form.get("password"):
-            return apology("adminlogin.html", "パスワードを入力してください")
-
-        # データベース接続処理 CS50を使わないバージョン
-        conn = sqlite3.connect("health.db")
-        conn.row_factory = dict_factory
-        cur = conn.cursor()
-
-        # データベースに団体名があるかどうか確認する
-        cur.execute("SELECT * groups FROM group_id WHERE group_id = ?", (groupid,))
-        rows = cur.fetchall()
-
-        # 団体が存在し、パスワードが正しいか確認する。
-        if len(rows) != 1 or not check_password_hash(rows["group_password"], request.form.get("password")):
-            # ファイルを閉じる
-            conn.close()
-            return apology("adminlogin.html", "団体IDまたはパスワードが間違っております。")
-
-        # ログインした団体名を記憶する
-        session["group_id"] = rows["group_id"]
-        # ファイルを閉じる
-        conn.close()
-
-        # ログイン者を管理ページに移動させる。
-        return redirect("/adminhome")
-
-    # GET経由ならログイン画面を表示させる
-    else:
-        return render_template("adminlogin.html")
-
 # グループ作成
-@app.route("/adminreg", methods=["GET", "POST"])
-def adminreg():
+@app.route("/groupcreate", methods=["GET", "POST"])
+@login_required
+def groupcreate():
 
     # postで入ってきたらデータベースに登録の処理を実行
     if request.method == "POST":
 
         # 空欄チェック
         groupname = request.form.get('groupname')
-        if not groupname:
-            return apology("adminreg.html", "団体名を入力してください")
-
-        password = request.form.get('password')
-        if not password:
-            return apology("adminreg.html", "パスワードを入力してください")
-
-        confirmation = request.form.get('confirmation')
-        if not confirmation:
-            return apology("adminreg.html", "確認パスワードを入力してください")
+        input_check(groupname, "groupcreate.html", "グループ名を入力してください")
 
         # データベース接続
         conn = sqlite3.connect("health.db")
         conn.row_factory = dict_factory
         cur = conn.cursor()
+        groupid = "0"
 
-        #パスワードと確認パスワードがかぶってないか確認
-        if not password == confirmation:
-            conn.close()
-            return apology("adminreg.html", "パスワードと確認パスワードが一致しません")
-        password_hash = generate_password_hash(password, method="sha256")
+        # グループIDがかぶらないようにIDを生成するループ処理
+        while True:
+            # グループIDを生成
+            groupid = id_generator()
 
-        # データベースに登録 あとでもろもろ追加
-        newdata = (groupname, password_hash,)
-        cur.execute("INSERT INTO groups (group_name, group_password) VALUES(?, ?)", newdata)
+            # 一致するグループIDがあるか確認
+            cur.execute("SELECT group_id FROM groups_test WHERE group_id = ?", (groupid,))
+            groupid_check = cur.fetchall()
 
-        # セッション取得のための処理
-        group_id = cur.execute("SELECT group_id FROM groups WHERE group_name = ? AND group_password = ? ", newdata)
-        session["group_id"] = group_id
+            # グループIDが重複していない場合
+            if not groupid_check:
+                break
+
+            # グループIDが重複している場合
+            else:
+                continue
+
+        # データベースに登録
+        newdata = (groupid, groupname,)
+        cur.execute("INSERT INTO groups_test (group_id, group_name) VALUES(?, ?)", newdata)
+
+        # グループに追加した人のロールを1(管理者)とする
+        cur.execute("UPDATE users SET role = 1 WHERE user_id = ?",(session["user_id"],))
         conn.commit()
         conn.close()
 
-        # リダイレクトで団体IDを表示
-        return redirect("/adminid")
+        # 団体ID表示画面へ移動
+        return render_template("group_id.html", groupid = groupid)
 
-    # getの場合は登録画面になります。
+    # getの場合は作成画面になります。
     else:
+        return render_template("groupcreate.html")
+
+# グループ参加
+@app.route("/groupadd", methods=["GET", "POST"])
+@login_required
+def groupadd():
+
+    # postで入ってきたらデータベースに登録の処理を実行
+    if request.method == "POST":
+
+        # 空欄チェック
+        groupid = request.form.get('groupid')
+        input_check(groupid, "groupadd.html", "グループIDを入力してください")
+
+        # データベース接続処理
+        conn = sqlite3.connect("health.db")
+        cur = conn.cursor()
+
+        # データベースにグループ名とIDがあるかどうか確認
+        cur.execute("SELECT group_id FROM groups_test WHERE group_id = ?", (groupid,))
+        rows = cur.fetchall()
+        if rows:
+            conn.close()
+            return apology("groupadd.html", "グループIDが間違っております。")
+
+        # ユーザーIDにグループIDを追加する
+        cur.execute("UPDATE users SET group_id = ? WHERE user_id = ?",(groupid,),(session["user_id"],))
+        conn.commit()
+        conn.close()
+
+        # ユーザーを体温報告ページに移動させる。
+        return redirect("/")
+
+    # GET経由ならログイン画面を表示させる
+    else:
+<<<<<<< HEAD
         return render_template("adminreg.html")
 
 # 管理者ID表示
@@ -477,5 +461,7 @@ def groupId():
         # グループIDが重複している場合
         else:
             continue
+=======
+        return render_template("groupadd.html")
+>>>>>>> 141083b76ab507af928fc6d81f0756b6e9f35449
 
-    return render_template("group_id.html", groupid=groupid)
