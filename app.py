@@ -266,22 +266,17 @@ def groupcreate():
             return apology("groupcreate.html", "既にグループに加入済みなのでグループを作成できません。")
         """
 
+        # データベースからグループID取得
+        cur.execute("SELECT group_id FROM groups WHERE group_id = ?", groupid)
+        checkers = cur.fetchall()
+
         # グループIDがかぶらないようにIDを生成するループ処理
-        groupid = "0"
-        while True:
+        for checker in checkers:
             # グループIDを生成
             groupid = id_generator()
 
-            # 一致するグループIDがあるか確認
-            cur.execute("SELECT group_id FROM groups WHERE group_id = ?", (groupid,))
-            groupid_check = cur.fetchall()
-
-            # グループIDが重複していない場合
-            if not groupid_check:
-                break
-
             # グループIDが重複している場合
-            else:
+            if groupid == checker:
                 continue
 
         # データベースに登録
@@ -507,23 +502,21 @@ def groupId():
     conn.row_factory = dict_factory
     cur = conn.cursor()
 
+    # データベースからグループID取得
+    cur.execute("SELECT group_id FROM groups WHERE group_id = ?", groupid)
+    checkers = cur.fetchall()
+
     # グループIDがかぶらないようにIDを生成するループ処理
-    while True:
+    for checker in checkers:
         # グループIDを生成
         groupid = id_generator()
 
-        # 一致するグループIDがあるか確認
-        groupid_check = cur.execute("SELECT group_id FROM groups WHERE group_id = ?", groupid)
-
-        # グループIDが重複していない場合
-        if groupid_check is None:
-            break
-
         # グループIDが重複している場合
-        else:
+        if groupid == checker:
             continue
 
     return render_template("group_id.html", groupid=groupid)
+
 
 @app.route("/mypage")
 @login_required
