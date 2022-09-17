@@ -257,7 +257,6 @@ def groupadd():
 
     # GET経由ならログイン画面を表示させる
     else:
-<<<<<<< HEAD
         return render_template("adminreg.html")
 
 # 管理者ID表示
@@ -461,7 +460,6 @@ def groupId():
         # グループIDが重複している場合
         else:
             continue
-=======
-        return render_template("groupadd.html")
->>>>>>> 141083b76ab507af928fc6d81f0756b6e9f35449
+
+    return render_template("group_id.html", groupid=groupid)
 
