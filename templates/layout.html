@@ -17,7 +17,10 @@
         <!-- CSS読込 -->
         <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 
-        <title>Health-Check: {% block title %}{% endblock %}</title>
+        <!-- ファビコン読込 -->
+        <link href="/static/favicon.ico" rel="icon">
+
+        <title>HealthCheck: {% block title %}{% endblock %}</title>
     </head>
     <body>
         <header>
