@@ -78,7 +78,7 @@ def index():
         memo = request.form.get("memo")
 
         # 体温、備考情報を記録テーブルに挿入
-        cur.execute("INSERT INTO logs(user_id,temperature,memo,datetime) VALUES (?,?,?,?)",
+        cur.execute("INSERT INTO logs(user_id, temperature, memo, updated_at) VALUES (?,?,?,?)",
                         (session["user_id"], temperature, memo, datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
 
         cur.execute("SELECT log_id FROM logs ORDER BY log_id DESC LIMIT 1")
@@ -201,8 +201,8 @@ def register():
         userid = request.form.get('userid')
         input_check(userid,"register.html", "ユーザーIDを入力してください")
 
-        username = request.form.get('username')
-        input_check(username, "register.html", "名前を入力してください")
+        user_name = request.form.get('user_name')
+        input_check(user_name, "register.html", "名前を入力してください")
 
         password = request.form.get('password')
         input_check(password, "register.html", "パスワードを入力してください")
@@ -229,8 +229,8 @@ def register():
         password_hash = generate_password_hash(password, method="sha256")
 
         # データベースに登録
-        newdata = (userid, username, password_hash, 1)
-        cur.execute("INSERT INTO users (user_id, username, hash, role) VALUES(?, ?, ?, ?)", (newdata))
+        newdata = (userid, user_name, password_hash, 1)
+        cur.execute("INSERT INTO users (user_id, user_name, hash, role) VALUES(?, ?, ?, ?)", (newdata))
         conn.commit()
         conn.close()
 
