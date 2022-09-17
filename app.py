@@ -540,41 +540,12 @@ def mypage():
     cur.execute("SELECT * FROM logs INNER JOIN log_details ON logs.log_id = log_details.log_id AND log_details.user_id = ?", (session["user_id"],))
     all = cur.fetchall()
 
-    # 頭痛の有無を判別、書き換え
+    # 症状の判別を有無に置換（DBで0:無、1:有として扱っているため）
     for i in all:
-        if i["headache"] == 1:
-            i["headache"] = "有"
-        else:
-            i["headache"] = "無"
-
-    # 咳の有無を判別、書き換え
-    for i in all:
-        if i["cough"] == 1:
-            i["cough"] = "有"
-        else:
-            i["cough"] = "無"
-
-    # 倦怠感の有無を判別、書き換え
-    for i in all:
-        if i["fatigue"] == 1:
-            i["fatigue"] = "有"
-        else:
-            i["fatigue"] = "無"
-
-    # 味覚・嗅覚の異常の有無を判別、書き換え
-    for i in all:
-        if i["abnormal"] == 1:
-            i["abnormal"] = "有"
-        else:
-            i["abnormal"] = "無"
-
-    # 咳の有無を判別、書き換え
-    for i in all:
-        if i["runny"] == 1:
-            i["runny"] = "有"
-        else:
-            i["runny"] = "無"
+        for j in i:
+            if i[j] == 1:
+                i[j] = "有"
+            else:
+                i[j] = "無"
 
     return render_template("mypage.html", details=details, logs=logs, all=all)
-
-
