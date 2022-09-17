@@ -162,7 +162,7 @@ def register():
 
         # データベースに登録
         newdata = (userid, username, password_hash,)
-        cur.execute("INSERT INTO users (user_id, username, hash) VALUES(?, ?, ?)", (newdata))
+        cur.execute("INSERT INTO users (user_id, user_name, hash) VALUES(?, ?, ?)", (newdata))
         conn.commit()
         conn.close()
 
@@ -261,7 +261,7 @@ def groupadd():
 
 # 管理者ID表示
 @app.route("/adminid")
-@admin_required
+# @admin_required
 def adminid():
 
     # データベース接続
@@ -276,7 +276,7 @@ def adminid():
 
 # 管理ページ
 @app.route("/adminhome")
-@admin_required
+# @admin_required
 def adminhome():
     conn = sqlite3.connect("health.db")
     conn.row_factory = dict_factory
@@ -335,7 +335,7 @@ def adminhome():
 
 
 @app.route("/adminrole", methods=["GET", "POST"])
-@admin_required
+# @admin_required
 def adminrole():
     # POSTで入ってきたら権限を変更する
     if request.method == "POST":
@@ -437,7 +437,7 @@ def adminrole():
 
 # グループID通知画面
 @app.route("/groupid")
-@admin_required
+# @admin_required
 def groupId():
 
     # データベースに接続
@@ -462,4 +462,3 @@ def groupId():
             continue
 
     return render_template("group_id.html", groupid=groupid)
-
