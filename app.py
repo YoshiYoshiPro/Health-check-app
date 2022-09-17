@@ -8,9 +8,9 @@ from flask_session import Session
 from tempfile import mkdtemp
 from werkzeug.security import check_password_hash, generate_password_hash
 import datetime
-
-
+from datetime import datetime
 from helpers import apology, login_required
+
 
 app = Flask(__name__)
 
@@ -58,15 +58,83 @@ def input_check(inputtext, html, message):
 
 
 # 体温報告画面
-@app.route("/")
+@app.route("/", methods=["GET", "POST"])
 @login_required
 def index():
-
     # ログイン状態の確認
     if not session:
         redirect("/login")
 
-    return render_template("input.html")
+    if request.method == "POST":
+        # データベースに接続
+        conn = sqlite3.connect("health.db")
+        conn.row_factory = dict_factory
+        cur = conn.cursor()
+
+        # 体温を取得
+        temperature = request.form.get("body_temperature")
+
+        # 備考を取得
+        memo = request.form.get("memo")
+
+        # 体温、備考情報を記録テーブルに挿入
+        cur.execute("INSERT INTO logs(user_id,temperature,memo,datetime) VALUES (?,?,?,?)",
+                        (session["user_id"], temperature, memo, datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
+
+        cur.execute("SELECT log_id FROM logs ORDER BY log_id DESC LIMIT 1")
+        i = cur.fetchall()
+        log_id = i[0]["log_id"]
+
+        # 頭痛の有無を取得
+        headache = request.form.get("headache")
+        if headache == "ある":
+            headache = 1
+        else:
+            headache = 0
+
+        # 咳の有無を取得
+        cough = request.form.get("cough")
+        if cough == "ある":
+            cough = 1
+        else:
+            cough = 0
+
+        # 倦怠感の有無を取得
+        fatigue = request.form.get("stuffiness")
+        if fatigue == "ある":
+            fatigue = 1
+        else:
+            fatigue = 0
+
+        # 異常を取得
+        abnormal = request.form.get("taste_smell_abnormal")
+        if abnormal == "ある":
+            abnormal = 1
+        else:
+            abnormal = 0
+
+        # 鼻づまりの有無を取得
+        runny = request.form.get("runny_nose")
+        if runny == "ある":
+            runny = 1
+        else:
+            runny = 0
+
+        # 記録詳細テーブルに挿入
+        cur.execute("INSERT INTO log_details(log_id,user_id,headache,cough,fatigue,abnormal,runny) VALUES (?,?,?,?,?,?,?)",
+                    (log_id, session["user_id"], int(headache), int(cough), int(fatigue), int(abnormal), int(runny),))
+
+        conn.commit()
+        conn.close()
+
+        return redirect("/mypage")
+
+    else:
+        # ログイン状態の確認
+        if not session:
+            redirect("/login")
+        return render_template("input.html")
+
 
 # ログイン画面
 @app.route("/login", methods=["GET", "POST"])
@@ -161,8 +229,8 @@ def register():
         password_hash = generate_password_hash(password, method="sha256")
 
         # データベースに登録
-        newdata = (userid, username, password_hash,)
-        cur.execute("INSERT INTO users (user_id, user_name, hash) VALUES(?, ?, ?)", (newdata))
+        newdata = (userid, username, password_hash, 1)
+        cur.execute("INSERT INTO users (user_id, username, hash, role) VALUES(?, ?, ?, ?)", (newdata))
         conn.commit()
         conn.close()
 
@@ -460,3 +528,64 @@ def groupId():
             continue
 
     return render_template("group_id.html", groupid=groupid)
+
+@app.route("/mypage")
+@login_required
+def mypage():
+
+    # データベースに接続
+    conn = sqlite3.connect("health.db")
+    conn.row_factory = dict_factory
+    cur = conn.cursor()
+
+    # ユーザーIDの取得
+    user_id = cur.execute("SELECT user_id FROM users WHERE user_id = ?", (session["user_id"],))
+
+    # 記録の詳細を取得
+    details = cur.execute("SELECT * FROM log_details WHERE user_id = ?", (session["user_id"],))
+
+    # 記録を取得
+    logs = cur.execute("SELECT * FROM logs WHERE user_id = ?", (session["user_id"],))
+
+    # 記録テーブルと記録詳細テーブルを結合
+    cur.execute("SELECT * FROM logs INNER JOIN log_details ON logs.log_id = log_details.log_id AND log_details.user_id = ?", (session["user_id"],))
+    all = cur.fetchall()
+
+    # 頭痛の有無を判別、書き換え
+    for i in all:
+            if i["headache"] == 1:
+                i["headache"] = "有"
+            else:
+                i["headache"] = "無"
+
+    # 咳の有無を判別、書き換え
+    for i in all:
+            if i["cough"] == 1:
+                i["cough"] = "有"
+            else:
+                i["cough"] = "無"
+
+    # 倦怠感の有無を判別、書き換え
+    for i in all:
+            if i["fatigue"] == 1:
+                i["fatigue"] = "有"
+            else:
+                i["fatigue"] = "無"
+
+    # 味覚・嗅覚の異常の有無を判別、書き換え
+    for i in all:
+            if i["abnormal"] == 1:
+                i["abnormal"] = "有"
+            else:
+                i["abnormal"] = "無"
+
+    # 咳の有無を判別、書き換え
+    for i in all:
+            if i["runny"] == 1:
+                i["runny"] = "有"
+            else:
+                i["runny"] = "無"
+
+    return render_template("mypage.html", details=details, logs=logs, all=all)
+
+
