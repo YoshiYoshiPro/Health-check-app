@@ -5,25 +5,20 @@
 {% endblock %}
 
 {% block main %}
-    <h1>マイページ</h1>
+    <h3>マイページ</h3>
     <table class="table">
-            <tr>
-                <th>日付</th>
-                <th>頭痛</th>
-                <th>咳</th>
-                <th>倦怠感</th>
-                <th>嗅覚・味覚の異常</th>
-                <th>鼻水</th>
-            </tr>
+            
         <tbody>
-            {% for d in details %}
+            {% for d in all %}
                 <tr>
                     <td>{{ d.datetime }}</td>
-                    <td>{{ d.headache }}</td>
-                    <td>{{ d.cough }}</td>
-                    <td>{{ d.fatigue }}</td>
-                    <td>{{ d.abnormal }}</td>
-                    <td>{{ d.runny }}</td>
+                    <td>体温：{{ d.temperature }}</td>
+                    <td>頭痛：{{d.headache }}</td>
+                    <td>咳：{{ d.cough }}</td>
+                    <td>倦怠感：{{ d.fatigue }}</td>
+                    <td>味覚・嗅覚の異常：{{ d.abnormal }}</td>
+                    <td>鼻水：{{ d.runny }}</td>
+                    <td>備考：{{ d.memo }}</td>
                 </tr>
             {% endfor %}
         </tbody>
