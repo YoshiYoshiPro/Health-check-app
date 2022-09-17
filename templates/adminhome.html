@@ -28,6 +28,9 @@
 <br>
 <div>
     <p>体調不良者</p>
+    {% for poor_condition in poor_conditions %}
+    <p>{{ poor_condition }}</p> <br>
+    {% endfor %}
 </div>
 
 

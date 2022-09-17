@@ -300,8 +300,10 @@ def adminhome():
         # 発熱者
         cur.execute("SELECT users.user_name, records.body_temperature FROM records INNER JOIN users ON records.user_id = users.user_id WHERE (records.record_date = ?) and (records.body_temperature >= ?);", (sample, temperature))
         fevers = cur.fetchall()
+
         # 体調不良者
-        # bad = cur.execute("SELECT users.user_name, FROM records INNER JOIN users ON records.user_id = users.user_id WHERE (records.record_date = ?) and (records.body_temperature >= ?);", (date, temperature))
+        cur.execute("SELECT users.user_name, FROM records INNER JOIN users ON records.user_id = users.user_id WHERE (records.record_date = ?) and (records.body_temperature >= ?);", (date, temperature))
+        poor_conditions = cur.fetchall()
 
         # 未記入者
         cur.execute("SELECT user_name from users;")
@@ -325,7 +327,7 @@ def adminhome():
         no_record = set(user_list) - set(recorder)
 
         conn.close()
-        return render_template("adminhome.html", date = today, fevers = fevers, no_records = no_record)
+        return render_template("adminhome.html", date = today, fevers = fevers, no_records = no_record, poor_conditions=poor_conditions)
 
     else:
         conn.close()
