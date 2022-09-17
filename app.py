@@ -8,6 +8,7 @@ from flask_session import Session
 from tempfile import mkdtemp
 from werkzeug.security import check_password_hash, generate_password_hash
 import datetime
+from datetime import datetime
 
 
 from helpers import apology, login_required, admin_required
@@ -63,8 +64,67 @@ def input_check(inputtext, html, message):
 def index():
 
     if request.method == "POST":
+        # データベースに接続
+        conn = sqlite3.connect("health.db")
+        conn.row_factory = dict_factory
+        cur = conn.cursor()
 
-        
+        # 体温を取得
+        temperature = request.form.get("body_temperature")
+
+        # 備考を取得
+        memo = request.form.get("memo")
+
+        # 体温、備考情報を記録テーブルに挿入
+        cur.execute("INSERT INTO logs(user_id,temperature,memo,datetime) VALUES (?,?,?,?)",
+                        (session["user_id"], temperature, memo, datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
+
+        cur.execute("SELECT log_id FROM logs ORDER BY log_id DESC LIMIT 1")
+        i = cur.fetchall()
+        log_id = i[0]["log_id"]
+
+        # 頭痛の有無を取得
+        headache = request.form.get("headache")
+        if headache == "ある":
+            headache = 1
+        else:
+            headache = 0
+
+        # 咳の有無を取得
+        cough = request.form.get("cough")
+        if cough == "ある":
+            cough = 1
+        else:
+            cough = 0
+
+        # 倦怠感の有無を取得
+        fatigue = request.form.get("stuffiness")
+        if fatigue == "ある":
+            fatigue = 1
+        else:
+            fatigue = 0
+
+        # 異常を取得
+        abnormal = request.form.get("taste_smell_abnormal")
+        if abnormal == "ある":
+            abnormal = 1
+        else:
+            abnormal = 0
+
+        # 鼻づまりの有無を取得
+        runny = request.form.get("runny_nose")
+        if runny == "ある":
+            runny = 1
+        else:
+            runny = 0
+
+        # 記録詳細テーブルに挿入
+        cur.execute("INSERT INTO log_details(log_id,user_id,headache,cough,fatigue,abnormal,runny) VALUES (?,?,?,?,?,?,?)",
+                   (log_id, session["user_id"], int(headache), int(cough), int(fatigue), int(abnormal), int(runny),))
+
+        conn.commit()
+        conn.close()
+
         return redirect("/mypage")
 
     else:
