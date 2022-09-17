@@ -63,6 +63,8 @@ def input_check(inputtext, html, message):
 def index():
 
     if request.method == "POST":
+
+        
         return redirect("/mypage")
 
     else:
@@ -328,7 +330,48 @@ def mypage():
     # 記録の詳細を取得
     details = cur.execute("SELECT * FROM log_details WHERE user_id = ?", (session["user_id"],))
 
+    # 記録を取得
+    logs = cur.execute("SELECT * FROM logs WHERE user_id = ?", (session["user_id"],))
 
-    return render_template("mypage.html", details=details)
+    # 記録テーブルと記録詳細テーブルを結合
+    cur.execute("SELECT * FROM logs INNER JOIN log_details ON logs.log_id = log_details.log_id AND log_details.user_id = ?", (session["user_id"],))
+    all = cur.fetchall()
+
+    # 頭痛の有無を判別、書き換え
+    for i in all:
+            if i["headache"] == 1:
+                i["headache"] = "有"
+            else:
+                i["headache"] = "無"
+
+    # 咳の有無を判別、書き換え
+    for i in all:
+            if i["cough"] == 1:
+                i["cough"] = "有"
+            else:
+                i["cough"] = "無"
+
+    # 倦怠感の有無を判別、書き換え
+    for i in all:
+            if i["fatigue"] == 1:
+                i["fatigue"] = "有"
+            else:
+                i["fatigue"] = "無"
+
+    # 味覚・嗅覚の異常の有無を判別、書き換え
+    for i in all:
+            if i["abnormal"] == 1:
+                i["abnormal"] = "有"
+            else:
+                i["abnormal"] = "無"
+
+    # 咳の有無を判別、書き換え
+    for i in all:
+            if i["runny"] == 1:
+                i["runny"] = "有"
+            else:
+                i["runny"] = "無"
+
+    return render_template("mypage.html", details=details, logs=logs, all=all)
 
 
