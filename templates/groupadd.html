@@ -1,0 +1,19 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    グループ作成
+{% endblock %}
+
+{% block main %}
+    <h1>グループ参加</h1>
+    <!-- エラーメッセージ -->
+    <p style="color:red">{{ message }}</p>
+
+    <form action="/groupadd" method="post">
+        <p>グループID</p>
+        <div class="mb-3">
+            <input autocomplete="off" autofocus class="form-control mx-auto w-auto" id="groupid" name="groupidme" placeholder="グループID" type="text">
+        </div>
+        <button class="btn btn-primary" type="submit">参加</button>
+    </form>
+{% endblock %}
