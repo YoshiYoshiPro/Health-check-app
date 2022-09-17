@@ -257,15 +257,23 @@ def groupcreate():
         conn = sqlite3.connect("health.db")
         conn.row_factory = dict_factory
         cur = conn.cursor()
-        groupid = "0"
+
+        """
+        # 既にグループに所属しているか確認
+        cur.execute("SELECT group_id FROM users WHERE user_id = ?",(session["user_id"],))
+        row = cur.fetchone()
+        if not row == None:
+            return apology("groupcreate.html", "既にグループに加入済みなのでグループを作成できません。")
+        """
 
         # グループIDがかぶらないようにIDを生成するループ処理
+        groupid = "0"
         while True:
             # グループIDを生成
             groupid = id_generator()
 
             # 一致するグループIDがあるか確認
-            cur.execute("SELECT group_id FROM groups_test WHERE group_id = ?", (groupid,))
+            cur.execute("SELECT group_id FROM groups WHERE group_id = ?", (groupid,))
             groupid_check = cur.fetchall()
 
             # グループIDが重複していない場合
@@ -278,10 +286,10 @@ def groupcreate():
 
         # データベースに登録
         newdata = (groupid, groupname,)
-        cur.execute("INSERT INTO groups_test (group_id, group_name) VALUES(?, ?)", newdata)
+        cur.execute("INSERT INTO groups (group_id, group_name) VALUES(?, ?)", newdata)
 
-        # グループに追加した人のロールを1(管理者)とする
-        cur.execute("UPDATE users SET role = 1 WHERE user_id = ?",(session["user_id"],))
+        # グループに追加した人のロールを1(管理者)として、グループIDを追加する
+        cur.execute("UPDATE users SET group_id = ?, role = 1 WHERE user_id = ?",(groupid, session["user_id"],))
         conn.commit()
         conn.close()
 
@@ -308,15 +316,16 @@ def groupadd():
         conn = sqlite3.connect("health.db")
         cur = conn.cursor()
 
+
         # データベースにグループ名とIDがあるかどうか確認
-        cur.execute("SELECT group_id FROM groups_test WHERE group_id = ?", (groupid,))
+        cur.execute("SELECT group_id FROM groups WHERE group_id = ?", (groupid,))
         rows = cur.fetchall()
-        if rows:
+        if not rows:
             conn.close()
             return apology("groupadd.html", "グループIDが間違っております。")
 
         # ユーザーIDにグループIDを追加する
-        cur.execute("UPDATE users SET group_id = ? WHERE user_id = ?",(groupid,),(session["user_id"],))
+        cur.execute("UPDATE users SET group_id = ? WHERE user_id = ?",(groupid, session["user_id"],))
         conn.commit()
         conn.close()
 
@@ -325,20 +334,7 @@ def groupadd():
 
     # GET経由ならログイン画面を表示させる
     else:
-        return render_template("adminreg.html")
-
-# 管理者ID表示
-@app.route("/adminid")
-def adminid():
-
-    # データベース接続
-    conn = sqlite3.connect("health.db")
-    conn.row_factory = dict_factory
-    cur = conn.cursor()
-
-    groupid = cur.execute("SELECT group_id FROM groups WHERE group_id = ?", (session["group_id"],))
-
-    return render_template("admin_html", groupid=groupid)
+        return render_template("groupadd.html")
 
 
 # 管理ページ
