@@ -1,8 +1,6 @@
 import os
 
 import sqlite3
-import random
-import string
 import datetime
 from flask import Flask, flash, redirect, render_template, url_for, request, session
 from flask_session import Session
