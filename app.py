@@ -9,8 +9,7 @@ from flask_session import Session
 from tempfile import mkdtemp
 from werkzeug.security import check_password_hash, generate_password_hash
 from datetime import datetime
-from helpers import apology, login_required
-
+from helpers import apology, login_required, id_generator
 
 app = Flask(__name__)
 
@@ -22,18 +21,6 @@ app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
 
-# グループIDを生成する関数（頭文字1文字と数字5桁）
-def id_generator():
-    text = f'{random.randrange(1, 10**5):05}'
-    uppercase_list = random.sample(string.ascii_uppercase, 1)
-
-    # リスト型 → str型
-    uppercase = ''.join(uppercase_list)
-
-    # 文字と数字を連結
-    text = uppercase + text
-
-    return text
 
 @app.after_request
 def after_request(response):

@@ -14,4 +14,15 @@ def login_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
+# グループIDを生成する関数（頭文字1文字と数字5桁）
+def id_generator():
+    text = f'{random.randrange(1, 10**5):05}'
+    uppercase_list = random.sample(string.ascii_uppercase, 1)
 
+    # リスト型 → str型
+    uppercase = ''.join(uppercase_list)
+
+    # 文字と数字を連結
+    text = uppercase + text
+
+    return text
