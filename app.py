@@ -85,40 +85,11 @@ def index():
         i = cur.fetchall()
         log_id = i[0]["log_id"]
 
-        # 頭痛の有無を取得
         headache = request.form.get("headache")
-        if headache == "ある":
-            headache = 1
-        else:
-            headache = 0
-
-        # 咳の有無を取得
         cough = request.form.get("cough")
-        if cough == "ある":
-            cough = 1
-        else:
-            cough = 0
-
-        # 倦怠感の有無を取得
         fatigue = request.form.get("stuffiness")
-        if fatigue == "ある":
-            fatigue = 1
-        else:
-            fatigue = 0
-
-        # 異常を取得
         abnormal = request.form.get("taste_smell_abnormal")
-        if abnormal == "ある":
-            abnormal = 1
-        else:
-            abnormal = 0
-
-        # 鼻づまりの有無を取得
         runny = request.form.get("runny_nose")
-        if runny == "ある":
-            runny = 1
-        else:
-            runny = 0
 
         # 記録詳細テーブルに挿入
         cur.execute("INSERT INTO log_details(log_id,user_id,headache,cough,fatigue,abnormal,runny) VALUES (?,?,?,?,?,?,?)",
@@ -337,7 +308,8 @@ def adminhome():
     if role[0]["role"] == 1:
         # 日付の取得
         date = datetime.date.today()
-        date.strftime('%Y年%m月%d日')
+        today = "{0:%Y/%m/%d}".format(date)
+        date = str(date)
 
         # 発熱の閾値設定
         temperature = 37.5
