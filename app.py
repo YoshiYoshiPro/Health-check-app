@@ -337,8 +337,7 @@ def adminhome():
     if role[0]["role"] == 1:
         # 日付の取得
         date = datetime.date.today()
-        today = "{0:%Y/%m/%d}".format(date)
-        date = str(date)
+        date.strftime('%Y年%m月%d日')
 
         # 発熱の閾値設定
         temperature = 37.5
