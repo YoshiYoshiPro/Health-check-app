@@ -3,11 +3,11 @@ import os
 import sqlite3
 import random
 import string
+import datetime
 from flask import Flask, flash, redirect, render_template, url_for, request, session
 from flask_session import Session
 from tempfile import mkdtemp
 from werkzeug.security import check_password_hash, generate_password_hash
-import datetime
 from datetime import datetime
 from helpers import apology, login_required
 
@@ -258,14 +258,6 @@ def groupcreate():
         conn.row_factory = dict_factory
         cur = conn.cursor()
 
-        """
-        # 既にグループに所属しているか確認
-        cur.execute("SELECT group_id FROM users WHERE user_id = ?",(session["user_id"],))
-        row = cur.fetchone()
-        if not row == None:
-            return apology("groupcreate.html", "既にグループに加入済みなのでグループを作成できません。")
-        """
-
         # データベースからグループID取得
         cur.execute("SELECT group_id FROM groups")
         checkers = cur.fetchall()
@@ -280,8 +272,8 @@ def groupcreate():
                 continue
 
         # データベースに登録
-        newdata = (groupid, groupname,)
-        cur.execute("INSERT INTO groups (group_id, group_name) VALUES(?, ?)", newdata)
+        newdata = (groupid, groupname)
+        cur.execute("INSERT INTO groups(group_id, group_name) VALUES(?, ?)", newdata)
 
         # グループに追加した人のロールを1(管理者)として、グループIDを追加する
         cur.execute("UPDATE users SET group_id = ?, role = 1 WHERE user_id = ?",(groupid, session["user_id"],))
@@ -311,11 +303,9 @@ def groupadd():
         conn = sqlite3.connect("health.db")
         cur = conn.cursor()
 
-
         # データベースにグループ名とIDがあるかどうか確認
-        cur.execute("SELECT group_id FROM groups WHERE group_id = ?", (groupid,))
-        rows = cur.fetchall()
-        if not rows:
+        checker = cur.execute("SELECT group_id FROM groups WHERE group_id = ?", (groupid,))
+        if not checker:
             conn.close()
             return apology("groupadd.html", "グループIDが間違っております。")
 
@@ -325,7 +315,7 @@ def groupadd():
         conn.close()
 
         # ユーザーを体温報告ページに移動させる。
-        return redirect("/")
+        return redirect("/adminhome")
 
     # GET経由ならログイン画面を表示させる
     else:
@@ -386,7 +376,7 @@ def adminhome():
         no_record = set(user_list) - set(recorder)
 
         conn.close()
-        return render_template("adminhome.html", date = today, fevers = fevers, no_records = no_record, poor_conditions=poor_conditions)
+        return render_template("adminhome.html", date=today, fevers=fevers, no_records=no_record, poor_conditions=poor_conditions)
 
     else:
         conn.close()
@@ -491,31 +481,6 @@ def adminrole():
         else:
             conn.close()
             return render_template("adminerror.html", message = "管理者権限がありません。")
-
-
-# グループID通知画面
-@app.route("/groupid")
-def groupId():
-
-    # データベースに接続
-    conn = sqlite3.connect("health.db")
-    conn.row_factory = dict_factory
-    cur = conn.cursor()
-
-    # データベースからグループID取得
-    cur.execute("SELECT group_id FROM groups")
-    checkers = cur.fetchall()
-
-    # グループIDがかぶらないようにIDを生成するループ処理
-    for checker in checkers:
-        # グループIDを生成
-        groupid = id_generator()
-
-        # グループIDが重複している場合
-        if groupid == checker:
-            continue
-
-    return render_template("group_id.html", groupid=groupid)
 
 
 @app.route("/mypage")
