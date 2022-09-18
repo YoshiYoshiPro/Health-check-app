@@ -267,7 +267,7 @@ def groupcreate():
         """
 
         # データベースからグループID取得
-        cur.execute("SELECT group_id FROM groups WHERE group_id = ?", groupid)
+        cur.execute("SELECT group_id FROM groups")
         checkers = cur.fetchall()
 
         # グループIDがかぶらないようにIDを生成するループ処理
@@ -503,7 +503,7 @@ def groupId():
     cur = conn.cursor()
 
     # データベースからグループID取得
-    cur.execute("SELECT group_id FROM groups WHERE group_id = ?", groupid)
+    cur.execute("SELECT group_id FROM groups")
     checkers = cur.fetchall()
 
     # グループIDがかぶらないようにIDを生成するループ処理
