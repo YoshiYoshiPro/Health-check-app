@@ -64,7 +64,7 @@ def index():
 
         # 体温、備考情報を記録テーブルに挿入
         cur.execute("INSERT INTO logs(user_id, temperature, memo, updated_at) VALUES (?,?,?,?)",
-                        (session["user_id"], temperature, memo, datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
+                        (session["user_id"], temperature, memo, str(datetime.date.today())))
 
         cur.execute("SELECT log_id FROM logs ORDER BY log_id DESC LIMIT 1")
         i = cur.fetchall()
@@ -218,6 +218,9 @@ def groupcreate():
         cur.execute("SELECT group_id FROM groups")
         checkers = cur.fetchall()
 
+        # グループIDの初期化
+        groupid = ""
+
         # グループIDがかぶらないようにIDを生成するループ処理
         for checker in checkers:
             # グループIDを生成
@@ -255,7 +258,7 @@ def groupadd():
         groupid = request.form.get('groupid')
         input_check(groupid, "groupadd.html", "グループIDを入力してください")
 
-        # データベース接続処理
+        # データベース接続
         conn = sqlite3.connect("health.db")
         cur = conn.cursor()
 
@@ -267,6 +270,11 @@ def groupadd():
 
         # ユーザーIDにグループIDを追加する
         cur.execute("UPDATE users SET group_id = ? WHERE user_id = ?",(groupid, session["user_id"],))
+
+        # グループ作成者に管理者権限を付与
+        cur.execute("UPDATE users SET role = 1 WHERE user_id = ?",(session["user_id"],))
+
+        # DB接続終了
         conn.commit()
         conn.close()
 
@@ -292,10 +300,7 @@ def adminhome():
 
     if role[0]["role"] == 1:
         # 日付の取得
-        datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        # date = datetime.date.today()
-        # today = "{0:%Y/%m/%d}".format(date)
-        # date = str(date)
+        date = str(datetime.date.today())
 
         # 発熱の閾値設定
         temperature = 37.5
@@ -306,7 +311,7 @@ def adminhome():
         # 発熱者
         cur.execute("SELECT user_name FROM users INNER JOIN logs ON logs.user_id = users.user_id WHERE logs.updated_at = ? AND logs.temperature >= ?", (sample, temperature))
         fevers = cur.fetchall()
-
+        
         # 体調不良者
         cur.execute("SELECT user_name FROM users INNER JOIN log_details ON log_details.user_id = users.user_id INNER JOIN logs ON logs.log_id = log_details.log_id WHERE logs.updated_at = ? AND (log_details.headache = 1 OR log_details.cough = 1 OR log_details.fatigue = 1 OR log_details.abnormal = 1 OR log_details.runny = 1)", (sample,))
         poor_conditions = cur.fetchall()
@@ -331,7 +336,7 @@ def adminhome():
         no_records = set(user_list) - set(recorder)
 
         conn.close()
-        return render_template("adminhome.html", date=today, fevers=fevers, no_records=no_records, poor_conditions=poor_conditions)
+        return render_template("adminhome.html", date=date, fevers=fevers, no_records=no_records, poor_conditions=poor_conditions)
 
     else:
         conn.close()
