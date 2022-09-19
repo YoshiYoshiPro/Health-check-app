@@ -475,7 +475,7 @@ def mypage():
         for j in i:
             if i[j] == 1:
                 i[j] = "有"
-            else:
+            elif i[j] == 0:
                 i[j] = "無"
 
     return render_template("mypage.html", details=details, logs=logs, all=all)
