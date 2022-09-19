@@ -64,7 +64,7 @@ def index():
 
         # 体温、備考情報を記録テーブルに挿入
         cur.execute("INSERT INTO logs(user_id, temperature, memo, updated_at) VALUES (?,?,?,?)",
-                        (session["user_id"], temperature, memo, str(datetime.date.today())))
+                        (session["user_id"], temperature, memo, datetime.now().strftime("%Y-%m-%d")))
 
         cur.execute("SELECT log_id FROM logs ORDER BY log_id DESC LIMIT 1")
         i = cur.fetchall()
@@ -269,7 +269,7 @@ def groupadd():
             return apology("groupadd.html", "グループIDが間違っております。")
 
         # ユーザーIDにグループIDを追加する
-        cur.execute("UPDATE users SET group_id = ? WHERE user_id = ?",(groupid, session["user_id"],))
+        cur.execute("UPDATE users SET group_id = ? WHERE user_id = ?",(groupid, session["user_id"]))
 
         # グループ作成者に管理者権限を付与
         cur.execute("UPDATE users SET role = 1 WHERE user_id = ?",(session["user_id"],))
@@ -295,12 +295,12 @@ def adminhome():
 
     # 権限を確認 dbのカラムを仮で「role」としています、role内も0を一般、1を管理者と仮定して作成しています
     user_id = session["user_id"]
-    cur.execute("SELECT role FROM users WHERE user_id = ?;", (user_id,))
+    cur.execute("SELECT role FROM users WHERE user_id = ?", (user_id,))
     role = cur.fetchall()
 
     if role[0]["role"] == 1:
         # 日付の取得
-        date = str(datetime.date.today())
+        date = datetime.now().strftime("%Y-%m-%d")
 
         # 発熱の閾値設定
         temperature = 37.5
