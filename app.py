@@ -292,9 +292,10 @@ def adminhome():
 
     if role[0]["role"] == 1:
         # 日付の取得
-        date = datetime.date.today()
-        today = "{0:%Y/%m/%d}".format(date)
-        date = str(date)
+        datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        # date = datetime.date.today()
+        # today = "{0:%Y/%m/%d}".format(date)
+        # date = str(date)
 
         # 発熱の閾値設定
         temperature = 37.5
@@ -303,36 +304,34 @@ def adminhome():
         sample = "2022-09-11"
 
         # 発熱者
-        cur.execute("SELECT users.user_name, records.body_temperature FROM records INNER JOIN users ON records.user_id = users.user_id WHERE (records.record_date = ?) and (records.body_temperature >= ?);", (sample, temperature))
+        cur.execute("SELECT user_name FROM users INNER JOIN logs ON logs.user_id = users.user_id WHERE logs.updated_at = ? AND logs.temperature >= ?", (sample, temperature))
         fevers = cur.fetchall()
 
         # 体調不良者
-        cur.execute("SELECT users.user_name, FROM records INNER JOIN users ON records.user_id = users.user_id WHERE (records.record_date = ?) and (records.body_temperature >= ?);", (date, temperature))
+        cur.execute("SELECT user_name FROM users INNER JOIN log_details ON log_details.user_id = users.user_id INNER JOIN logs ON logs.log_id = log_details.log_id WHERE logs.updated_at = ? AND (log_details.headache = 1 OR log_details.cough = 1 OR log_details.fatigue = 1 OR log_details.abnormal = 1 OR log_details.runny = 1)", (sample,))
         poor_conditions = cur.fetchall()
 
         # 未記入者
-        cur.execute("SELECT user_name from users;")
+        group_id = cur.execute("SELECT group_id FROM users WHERE user_id = ?", session["user_id"])
+        cur.execute("SELECT user_name FROM users WHERE group_id = ?", group_id)
         user_sql = cur.fetchall()
-        cur.execute("SELECT users.user_name FROM records INNER JOIN users ON records.user_id = users.user_id WHERE record_date = ?;", (sample,))
+        cur.execute("SELECT user_name FROM users INNER JOIN logs ON logs.user_id = users.user_id WHERE logs.updated_at = ?", (sample,))
         recorder_sql = cur.fetchall()
-
-        user_num = len(user_sql)
-        recorder_num = len(recorder_sql)
 
         user_list = []
         recorder = []
 
-        for i in range(user_num):
+        for i in range(len(user_sql)):
             user_list.append(user_sql[i]["user_name"])
 
-        for j in range(recorder_num):
+        for j in range(len(recorder_sql)):
             recorder.append(recorder_sql[j]["user_name"])
 
 
-        no_record = set(user_list) - set(recorder)
+        no_records = set(user_list) - set(recorder)
 
         conn.close()
-        return render_template("adminhome.html", date=today, fevers=fevers, no_records=no_record, poor_conditions=poor_conditions)
+        return render_template("adminhome.html", date=today, fevers=fevers, no_records=no_records, poor_conditions=poor_conditions)
 
     else:
         conn.close()
