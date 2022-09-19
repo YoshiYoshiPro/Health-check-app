@@ -317,8 +317,8 @@ def adminhome():
         poor_conditions = cur.fetchall()
 
         # 未記入者
-        group_id = cur.execute("SELECT group_id FROM users WHERE user_id = ?", session["user_id"])
-        cur.execute("SELECT user_name FROM users WHERE group_id = ?", group_id)
+        groupid = str(cur.execute("SELECT group_id FROM users WHERE user_id = ?", (session["user_id"],)))
+        cur.execute("SELECT user_name FROM users WHERE group_id = ?", (groupid,))
         user_sql = cur.fetchall()
         cur.execute("SELECT user_name FROM users INNER JOIN logs ON logs.user_id = users.user_id WHERE logs.updated_at = ?", (sample,))
         recorder_sql = cur.fetchall()
