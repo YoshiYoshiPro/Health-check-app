@@ -191,7 +191,7 @@ def register():
         conn.close()
 
         # リダイレクトでログイン画面に移動
-        return redirect("/login")
+        return render_template("register_ok.html")
 
     # getの場合は登録画面になります。
     else:
@@ -271,7 +271,7 @@ def groupadd():
         conn.close()
 
         # ユーザーを体温報告ページに移動させる。
-        return redirect("/adminhome")
+        return render_template("groupadd_ok.html")
 
     # GET経由ならログイン画面を表示させる
     else:
