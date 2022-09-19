@@ -301,19 +301,17 @@ def adminhome():
     if role[0]["role"] == 1:
         # 日付の取得
         date = datetime.now().strftime("%Y-%m-%d")
+        date_display = datetime.now().strftime("%Y年%m月%d日")
 
         # 発熱の閾値設定（以上）
         temperature = 37.5
 
-        # 確認用(仮データの日付) 発熱者、体調不良者、未記入者のデータベースのdate変数を変えてください
-        sample = "2022-09-11"
-
         # 発熱者
-        cur.execute("SELECT users.user_name, logs.temperature FROM users INNER JOIN logs ON users.user_id = logs.user_id WHERE logs.updated_at = ? AND logs.temperature >= ?", (sample, temperature,))
+        cur.execute("SELECT users.user_name, logs.temperature FROM users INNER JOIN logs ON users.user_id = logs.user_id WHERE logs.updated_at = ? AND logs.temperature >= ?", (date, temperature,))
         fevers = cur.fetchall()
         
         # 体調不良者
-        cur.execute("SELECT users.user_name, log_details.headache, log_details.cough, log_details.fatigue, log_details.abnormal, log_details.runny, logs.memo FROM users INNER JOIN log_details ON log_details.user_id = users.user_id INNER JOIN logs ON logs.log_id = log_details.log_id WHERE logs.updated_at = ? AND (log_details.headache = 1 OR log_details.cough = 1 OR log_details.fatigue = 1 OR log_details.abnormal = 1 OR log_details.runny = 1)", (sample,))
+        cur.execute("SELECT users.user_name, log_details.headache, log_details.cough, log_details.fatigue, log_details.abnormal, log_details.runny, logs.memo FROM users INNER JOIN log_details ON log_details.user_id = users.user_id INNER JOIN logs ON logs.log_id = log_details.log_id WHERE logs.updated_at = ? AND (log_details.headache = 1 OR log_details.cough = 1 OR log_details.fatigue = 1 OR log_details.abnormal = 1 OR log_details.runny = 1)", (date,))
         poor_conditions = cur.fetchall()
 
         # データの整形
@@ -327,7 +325,7 @@ def adminhome():
         groupid = str(cur.execute("SELECT group_id FROM users WHERE user_id = ?", (session["user_id"],)))
         cur.execute("SELECT user_name FROM users WHERE group_id = ?", (groupid,))
         user_sql = cur.fetchall()
-        cur.execute("SELECT user_name FROM users INNER JOIN logs ON logs.user_id = users.user_id WHERE logs.updated_at = ?", (sample,))
+        cur.execute("SELECT user_name FROM users INNER JOIN logs ON logs.user_id = users.user_id WHERE logs.updated_at = ?", (date,))
         recorder_sql = cur.fetchall()
 
         user_list = []
@@ -343,7 +341,7 @@ def adminhome():
         no_records = set(user_list) - set(recorder)
 
         conn.close()
-        return render_template("adminhome.html", date=date, fevers=fevers, no_records=no_records, poor_conditions=poor_conditions)
+        return render_template("adminhome.html", date=date, fevers=fevers, no_records=no_records, poor_conditions=poor_conditions, date_display=date_display)
 
     else:
         conn.close()
