@@ -255,7 +255,7 @@ def groupadd():
     if request.method == "POST":
 
         # 空欄チェック
-        groupid = request.form.get('groupid')
+        groupid = str(request.form.get('groupid'))
         input_check(groupid, "groupadd.html", "グループIDを入力してください")
 
         # データベース接続
@@ -269,10 +269,10 @@ def groupadd():
             return apology("groupadd.html", "グループIDが間違っております。")
 
         # ユーザーIDにグループIDを追加する
-        cur.execute("UPDATE users SET group_id = ? WHERE user_id = ?",(groupid, session["user_id"]))
+        cur.execute("UPDATE users SET group_id = ? WHERE user_id = ?", (groupid, session["user_id"]))
 
         # グループ作成者に管理者権限を付与
-        cur.execute("UPDATE users SET role = 1 WHERE user_id = ?",(session["user_id"],))
+        cur.execute("UPDATE users SET role = 1 WHERE user_id = ?", (session["user_id"],))
 
         # DB接続終了
         conn.commit()
