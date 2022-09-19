@@ -336,11 +336,11 @@ def adminhome():
         user_list = []
         recorder = []
 
-        for i in range(len(user_sql)):
-            user_list.append(user_sql[i]["user_name"])
+        for i in user_sql:
+            user_list.append(i["user_name"])
 
-        for j in range(len(recorder_sql)):
-            recorder.append(recorder_sql[j]["user_name"])
+        for j in recorder_sql:
+            recorder.append(j["user_name"])
 
         # 集合の差集合で未記入者を判別
         no_records = set(user_list) - set(recorder)
