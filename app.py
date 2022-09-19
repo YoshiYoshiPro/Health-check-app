@@ -302,19 +302,26 @@ def adminhome():
         # 日付の取得
         date = datetime.now().strftime("%Y-%m-%d")
 
-        # 発熱の閾値設定
+        # 発熱の閾値設定（以上）
         temperature = 37.5
 
         # 確認用(仮データの日付) 発熱者、体調不良者、未記入者のデータベースのdate変数を変えてください
         sample = "2022-09-11"
 
         # 発熱者
-        cur.execute("SELECT user_name FROM users INNER JOIN logs ON logs.user_id = users.user_id WHERE logs.updated_at = ? AND logs.temperature >= ?", (sample, temperature))
+        cur.execute("SELECT users.user_name, logs.temperature FROM users INNER JOIN logs ON users.user_id = logs.user_id WHERE logs.updated_at = ? AND logs.temperature >= ?", (sample, temperature,))
         fevers = cur.fetchall()
         
         # 体調不良者
-        cur.execute("SELECT user_name FROM users INNER JOIN log_details ON log_details.user_id = users.user_id INNER JOIN logs ON logs.log_id = log_details.log_id WHERE logs.updated_at = ? AND (log_details.headache = 1 OR log_details.cough = 1 OR log_details.fatigue = 1 OR log_details.abnormal = 1 OR log_details.runny = 1)", (sample,))
+        cur.execute("SELECT users.user_name, log_details.headache, log_details.cough, log_details.fatigue, log_details.abnormal, log_details.runny, logs.memo FROM users INNER JOIN log_details ON log_details.user_id = users.user_id INNER JOIN logs ON logs.log_id = log_details.log_id WHERE logs.updated_at = ? AND (log_details.headache = 1 OR log_details.cough = 1 OR log_details.fatigue = 1 OR log_details.abnormal = 1 OR log_details.runny = 1)", (sample,))
         poor_conditions = cur.fetchall()
+
+        # データの整形
+        # conditionCheckers = []
+        # for i in poor_conditions:
+        #     for j in i:
+        #         if i[j] == 1:
+        #             conditionCheckers.append(j)
 
         # 未記入者
         groupid = str(cur.execute("SELECT group_id FROM users WHERE user_id = ?", (session["user_id"],)))
@@ -340,7 +347,7 @@ def adminhome():
 
     else:
         conn.close()
-        return render_template("adminerror.html", message = "管理者権限がありません。")
+        return apology("adminhome.html", "管理者権限がありません")
 
 
 @app.route("/adminrole", methods=["GET", "POST"])
