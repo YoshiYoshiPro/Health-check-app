@@ -221,14 +221,18 @@ def groupcreate():
         # グループIDの初期化
         groupid = ""
 
-        # グループIDがかぶらないようにIDを生成するループ処理
-        for checker in checkers:
-            # グループIDを生成
-            groupid = id_generator()
+        # 初期にグループを登録する場合
+        if checkers:
+            # グループIDがかぶらないようにIDを生成するループ処理
+            for checker in checkers:
+                # グループIDを生成
+                groupid = id_generator()
 
-            # グループIDが重複している場合
-            if groupid == checker:
-                continue
+                # グループIDが重複している場合
+                if groupid == checker:
+                    continue
+        else:
+            groupid = id_generator()
 
         # データベースに登録
         newdata = (groupid, groupname)
