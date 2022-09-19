@@ -314,12 +314,13 @@ def adminhome():
         cur.execute("SELECT users.user_name, log_details.headache, log_details.cough, log_details.fatigue, log_details.abnormal, log_details.runny, logs.memo FROM users INNER JOIN log_details ON log_details.user_id = users.user_id INNER JOIN logs ON logs.log_id = log_details.log_id WHERE logs.updated_at = ? AND (log_details.headache = 1 OR log_details.cough = 1 OR log_details.fatigue = 1 OR log_details.abnormal = 1 OR log_details.runny = 1)", (date,))
         poor_conditions = cur.fetchall()
 
-        # データの整形
-        # conditionCheckers = []
-        # for i in poor_conditions:
-        #     for j in i:
-        #         if i[j] == 1:
-        #             conditionCheckers.append(j)
+        # 症状の判別を有無に置換（DBで0:無、1:有として扱っているため）
+        for i in poor_conditions:
+            for j in i:
+                if i[j] == 1:
+                    i[j] = "有"
+                elif i[j] == 0:
+                    i[j] = "無"
 
         # 未記入者
         groupid = str(cur.execute("SELECT group_id FROM users WHERE user_id = ?", (session["user_id"],)))
@@ -337,7 +338,7 @@ def adminhome():
         for j in range(len(recorder_sql)):
             recorder.append(recorder_sql[j]["user_name"])
 
-
+        # 集合の差集合で未記入者を判別
         no_records = set(user_list) - set(recorder)
 
         conn.close()

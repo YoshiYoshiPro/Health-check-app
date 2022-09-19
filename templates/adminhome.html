@@ -20,7 +20,7 @@
     <div>
         <p>体調不良者</p>
         {% for poor_condition in poor_conditions %}
-            <p>{{ poor_condition["user_name"] }} : 頭痛:{{ poor_condition["headache"] }} 咳:{{ poor_condition["cough"] }} 倦怠感:{{ poor_condition["fatigue"] }} 味覚・嗅覚の異常:{{ poor_condition["abnormal"] }} 鼻水:{{ poor_condition["runny"] }} 備考:{{ poor_condition["memo"] }}</p> <br>
+            <p>{{ poor_condition["user_name"] }} : 頭痛: {{ poor_condition["headache"] }} 咳: {{ poor_condition["cough"] }} 倦怠感: {{ poor_condition["fatigue"] }} 味覚・嗅覚の異常: {{ poor_condition["abnormal"] }} 鼻水: {{ poor_condition["runny"] }} 備考: {{ poor_condition["memo"] }}</p> <br>
         {% endfor %}
     </div>
 
