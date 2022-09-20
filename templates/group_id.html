@@ -17,6 +17,6 @@
     <h3 class="mb-3">このグループのIDはこちらです</h3>
     <div class="mb-3">
         <h3 id="copyTarget" class="mb-4" style="color: red;"><strong>{{ groupid }}</strong></h3>
-        <button class="copy" onclick="copy()">コピー</button>
+        <button class="copy" data-clipboard-text="{{ groupid }}">コピー</button>
     </div>
 {% endblock %}
