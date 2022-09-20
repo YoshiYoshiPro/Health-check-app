@@ -482,4 +482,4 @@ def mypage():
             elif i[j] == 0:
                 i[j] = "無"
 
-    return render_template("mypage.html", details=details, logs=logs, all=all)
+    return render_template("mypage.html", all=all)
