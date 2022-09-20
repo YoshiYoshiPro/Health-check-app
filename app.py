@@ -461,15 +461,6 @@ def mypage():
     conn.row_factory = dict_factory
     cur = conn.cursor()
 
-    # ユーザーIDの取得
-    user_id = cur.execute("SELECT user_id FROM users WHERE user_id = ?", (session["user_id"],))
-
-    # 記録の詳細を取得
-    details = cur.execute("SELECT * FROM log_details WHERE user_id = ?", (session["user_id"],))
-
-    # 記録を取得
-    logs = cur.execute("SELECT * FROM logs WHERE user_id = ?", (session["user_id"],))
-
     # 記録テーブルと記録詳細テーブルを結合
     cur.execute("SELECT * FROM logs INNER JOIN log_details ON logs.log_id = log_details.log_id AND log_details.user_id = ?", (session["user_id"],))
     all = cur.fetchall()
