@@ -8,9 +8,9 @@
 
     <!-- エラーメッセージ -->
     <p style="color:red">{{ message }}</p>
-    
+
     <h3 class="mb-4">{{ date_display }}</h3>
-    
+
     <div class="col-5 ml-3 container-fluid">
         <div class="card-header table-emphasize-fever">発熱者</div>
         <table class="table table-hover">
@@ -22,9 +22,9 @@
             </thead>
             <tbody>
                 {% for fever in fevers %}
-                    <tr>                    
-                        <td>{{ fever["user_name"] }}</td>  
-                        <td>{{ fever["temperature"] }}&#x2103;</td>                  
+                    <tr>
+                        <td>{{ fever["user_name"] }}</td>
+                        <td>{{ fever["temperature"] }}&#x2103;</td>
                     </tr>
                 {% endfor %}
             </tbody>
@@ -48,11 +48,11 @@
             </thead>
             <tbody>
                 {% for poor_condition in poor_conditions %}
-                    <tr>                    
-                        <td>{{ poor_condition["user_name"] }}</td>  
+                    <tr>
+                        <td>{{ poor_condition["user_name"] }}</td>
                         <td>{{ poor_condition["headache"] }}</td>
-                        <td>{{ poor_condition["cough"] }}</td> 
-                        <td>{{ poor_condition["fatigue"] }}</td>            
+                        <td>{{ poor_condition["cough"] }}</td>
+                        <td>{{ poor_condition["fatigue"] }}</td>
                         <td>{{ poor_condition["abnormal"] }}</td>
                         <td>{{ poor_condition["runny"] }}</td>
                         <td>{{ poor_condition["memo"] }}</td>
@@ -64,17 +64,17 @@
 
     <br>
     <div class="col-5 ml-3 container-fluid">
-        <!-- <div class="card-header table-emphasize-none">未記入者</div> -->
+        <div class="card-header table-emphasize-none">未記入者</div>
         <table class="table table-hover">
-            <thead class="table-emphasize-none">
+            <thead class="table-active">
                 <tr>
-                    <th>未記入者</th>
+                    <th>名前</th>
                 </tr>
             </thead>
             <tbody>
                 {% for no_record in no_records %}
-                    <tr>                    
-                        <td>{{ no_record }}</td>  
+                    <tr>
+                        <td>{{ no_record }}</td>
                     </tr>
                 {% endfor %}
             </tbody>
