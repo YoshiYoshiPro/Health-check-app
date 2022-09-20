@@ -19,3 +19,15 @@ body {
 .character-font {
     font-family: 'M PLUS Rounded 1c', sans-serif;
 }
+
+.table-emphasize-fever {
+    background-color: #f59797;
+}
+
+.table-emphasize-sick {
+    background-color: #84b5f5;
+}
+
+.table-emphasize-none {
+    background-color: #e5f088;
+}
