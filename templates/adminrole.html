@@ -6,48 +6,51 @@
 
 {% block main %}
 
-<p>チームメンバーの管理者に設定することができます。</p>
+    <!-- エラーメッセージ -->
+    <p style="color:red">{{ message }}</p>
 
-<p>{{ role }}</p>
+    <p>チームメンバーの管理者に設定することができます。</p>
 
-<div>
-    <form action="/adminrole" method="post">
-        <p>ユーザーID</p>
-        <input type="text" name="user_id">
-        <p>権限</p>
-        <select name="role">
-            <option value="admin" selected>管理者</option>
-            <option value="ippan">一般</option>
-        </select>
+    <p>{{ role }}</p>
+
+    <div>
+        <form action="/adminrole" method="post">
+            <p>ユーザーID</p>
+            <input type="text" name="user_id">
+            <p>権限</p>
+            <select name="role">
+                <option value="admin" selected>管理者</option>
+                <option value="ippan">一般</option>
+            </select>
+            <br>
+            <button type="submit">変更</button>
+        </form>
         <br>
-        <button type="submit">変更</button>
-    </form>
-    <br>
-</div>
+    </div>
 
 
-<div>
-    <p>チームメンバーリスト</p><br>
-    <table>
-        <thead>
-            <tr>
-                <th>ユーザーネーム</th>
-                <th>ID</th>
-                <th>権限</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for list in lists %}
-            <tr>
-                <td>{{ list["user_name"] }}</td>
-                <td>{{ list["user_id"] }}</td>
-                <td>{{ list["role"] }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-</table>
+    <div>
+        <p>チームメンバーリスト</p><br>
+        <table>
+            <thead>
+                <tr>
+                    <th>ユーザーネーム</th>
+                    <th>ID</th>
+                    <th>権限</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for list in lists %}
+                <tr>
+                    <td>{{ list["user_name"] }}</td>
+                    <td>{{ list["user_id"] }}</td>
+                    <td>{{ list["role"] }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+    </table>
 
-</div>
+    </div>
 
 
 

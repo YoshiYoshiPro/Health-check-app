@@ -6,33 +6,36 @@
 
 {% block main %}
 
-<p>{{ date }}</p> <p>{{ group_id }}</p>
+    <!-- エラーメッセージ -->
+    <p style="color:red">{{ message }}</p>
 
-<div>
-    <p>発熱者</p>
-    {% for fever in fevers %}
-    <p>{{ fever["user_name"] }} {{ fever["body_temperature"] }}</p><br>
-    {% endfor %}
+    <p>{{ date }}</p> <p>{{ group_id }}</p>
 
-</div>
+    <div>
+        <p>発熱者</p>
+        {% for fever in fevers %}
+        <p>{{ fever["user_name"] }} {{ fever["body_temperature"] }}</p><br>
+        {% endfor %}
 
-<br>
-<div>
-    <p>未記入者</p>
-    {% for no_record in no_records %}
-    {{ no_record }}<br>
-    {% endfor %}
+    </div>
 
-</div>
+    <br>
+    <div>
+        <p>未記入者</p>
+        {% for no_record in no_records %}
+        {{ no_record }}<br>
+        {% endfor %}
 
-<br>
-<div>
-    <p>体調不良者</p>
-</div>
+    </div>
 
-<div>
-    <a href="/adminrole">管理者権限変更</a>
-</div>
+    <br>
+    <div>
+        <p>体調不良者</p>
+    </div>
+
+    <div>
+        <a href="/adminrole">管理者権限変更</a>
+    </div>
 
 
 {% endblock %}

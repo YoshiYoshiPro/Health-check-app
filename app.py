@@ -348,7 +348,7 @@ def adminhome():
 
     else:
         conn.close()
-        return render_template("adminerror.html", message = "管理者権限がありません。")
+        return apology("adminhome.html", "管理者権限がありません。")
 
 
 @app.route("/adminrole", methods=["GET", "POST"])
@@ -359,14 +359,14 @@ def adminrole():
 
         # ユーザーIDが入力されていなかったらエラーを表示する
         if not request.form.get("user_id"):
-            return render_template("adminerror.html", message = "ユーザーIDを入力してください")
+            return apology("adminrole.html", "ユーザーIDを入力してください")
 
         user_id = request.form.get("user_id")
         role = request.form.get("role")
 
         # 受け取ったユーザーIDが数字であることを確認
         if str.isdigit(user_id) == False:
-            return render_template("adminerror.html", message = "ユーザーIDは数字のみで入力してください")
+            return apology("adminrole.html", "ユーザーIDは数字のみで入力してください")
 
         # 受け取ったロールを変換
         if role == "admin":
@@ -393,7 +393,7 @@ def adminrole():
         user = cur.fetchall()
 
         if len(user) == 0:
-            return render_template("adminerror.html", message = "このユーザーは存在しないか、このグループに所属していません")
+            return apology("adminrole.html", "このユーザーは存在しないか、このグループに所属していません")
 
         # roleを変更
         cur.execute("UPDATE users SET role = ? WHERE user_id = ?;", (role, int(user_id)))
@@ -419,7 +419,7 @@ def adminrole():
 
         # 権限を確認 dbのカラムを仮で「role」としています、role内も0を一般、1を管理者と仮定して作成しています
         user_id = session["user_id"]
-        
+
         cur.execute("SELECT role FROM users WHERE user_id = ?;", (user_id,))
         role = cur.fetchall()
 
@@ -446,7 +446,7 @@ def adminrole():
 
         else:
             conn.close()
-            return render_template("adminerror.html", message = "管理者権限がありません。")
+            return apology("adminrole.html", "管理者権限がありません。")
 
 
 # グループID通知画面
