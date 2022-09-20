@@ -10,3 +10,8 @@ body {
 .border {
     color: #BD0606;
 }
+
+.btn {
+    background-color: #BD0606;
+    border-color: #BD0606;
+}
