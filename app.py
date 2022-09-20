@@ -297,9 +297,9 @@ def adminhome():
     conn.row_factory = dict_factory
     cur = conn.cursor()
 
-    # 権限を確認 dbのカラムを仮で「role」としています、role内も0を一般、1を管理者と仮定して作成しています
+    # 権限を確認 ついでにグループIDの取得
     user_id = session["user_id"]
-    cur.execute("SELECT role FROM users WHERE user_id = ?", (user_id,))
+    cur.execute("SELECT role, group_id FROM users WHERE user_id = ?;", (user_id,))
     role = cur.fetchall()
 
     if role[0]["role"] == 1:
@@ -313,7 +313,7 @@ def adminhome():
         # 発熱者
         cur.execute("SELECT users.user_name, logs.temperature FROM users INNER JOIN logs ON users.user_id = logs.user_id WHERE logs.updated_at = ? AND logs.temperature >= ?", (date, temperature,))
         fevers = cur.fetchall()
-        
+
         # 体調不良者
         cur.execute("SELECT users.user_name, log_details.headache, log_details.cough, log_details.fatigue, log_details.abnormal, log_details.runny, logs.memo FROM users INNER JOIN log_details ON log_details.user_id = users.user_id INNER JOIN logs ON logs.log_id = log_details.log_id WHERE logs.updated_at = ? AND (log_details.headache = 1 OR log_details.cough = 1 OR log_details.fatigue = 1 OR log_details.abnormal = 1 OR log_details.runny = 1)", (date,))
         poor_conditions = cur.fetchall()
@@ -346,11 +346,12 @@ def adminhome():
         no_records = set(user_list) - set(recorder)
 
         conn.close()
-        return render_template("adminhome.html", date=date, fevers=fevers, no_records=no_records, poor_conditions=poor_conditions, date_display=date_display)
+        return render_template("adminhome.html", date=date, group_id = role[0]["group_id"], fevers=fevers, no_records=no_records, poor_conditions=poor_conditions, date_display=date_display)
 
     else:
         conn.close()
-        return apology("adminhome.html", "管理者権限がありません")
+        # ユーザーを体温報告ページに移動させる。「管理者権限がありません。」というメッセージを表示したいのですが、やり方がわからないため保留
+        return redirect("/")
 
 
 @app.route("/adminrole", methods=["GET", "POST"])
@@ -360,14 +361,14 @@ def adminrole():
 
         # ユーザーIDが入力されていなかったらエラーを表示する
         if not request.form.get("user_id"):
-            return render_template("adminerror.html", message = "ユーザーIDを入力してください")
+            return apology("adminrole.html", "ユーザーIDを入力してください")
 
         user_id = request.form.get("user_id")
         role = request.form.get("role")
 
         # 受け取ったユーザーIDが数字であることを確認
         if str.isdigit(user_id) == False:
-            return render_template("adminerror.html", message = "ユーザーIDは数字のみで入力してください")
+            return apology("adminrole.html", "ユーザーIDは数字のみで入力してください")
 
         # 受け取ったロールを変換
         if role == "admin":
@@ -381,9 +382,7 @@ def adminrole():
         cur = conn.cursor()
 
         # 送信者のユーザーIDを取得
-        # admin_user_id = session["user_id"]
-        # sessionが使えないため仮置き
-        admin_user_id = 12345
+        admin_user_id = session["user_id"]
 
         #グループidの取得(もしsessionで取得できるならsessionで取得)
         # group_id = session["group_id"]
@@ -396,10 +395,10 @@ def adminrole():
         user = cur.fetchall()
 
         if len(user) == 0:
-            return render_template("adminerror.html", message = "このユーザーは存在しないか、このグループに所属していません")
+            return apology("adminrole.html", "このユーザーは存在しないか、このグループに所属していません")
 
         # roleを変更
-        cur.execute("UPDATE users SET role = ? WHERE user_id = ?;", (role, int(user_id)))
+        cur.execute("UPDATE users SET role = ? WHERE user_id = ?;", (role, user_id,))
 
         # メンバー一覧の作成
         cur.execute("SELECT user_name, user_id, role FROM users WHERE group_id = ?;", (group_id[0]["group_id"],))
@@ -421,9 +420,8 @@ def adminrole():
         cur = conn.cursor()
 
         # 権限を確認 dbのカラムを仮で「role」としています、role内も0を一般、1を管理者と仮定して作成しています
-        # user_id = session["user_id"]
-        # user_idを仮置き
-        user_id = 12345
+        user_id = session["user_id"]
+
         cur.execute("SELECT role FROM users WHERE user_id = ?;", (user_id,))
         role = cur.fetchall()
 
@@ -450,7 +448,8 @@ def adminrole():
 
         else:
             conn.close()
-            return render_template("adminerror.html", message = "管理者権限がありません。")
+            # ユーザーを体温報告ページに移動させる。 「管理者権限がありません。」というメッセージを表示したいのですが、やり方がわからないため保留
+            return redirect("/")
 
 
 @app.route("/mypage")

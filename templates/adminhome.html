@@ -6,6 +6,9 @@
 
 {% block main %}
 
+    <!-- エラーメッセージ -->
+    <p style="color:red">{{ message }}</p>
+    
     <h3 class="mb-4">{{ date_display }}</h3>
     
     <div class="col-5 ml-3 container-fluid">
@@ -76,5 +79,9 @@
                 {% endfor %}
             </tbody>
         </table>
+    </div>
+
+    <div>
+        <a href="/adminrole">管理者権限変更</a>
     </div>
 {% endblock %}
