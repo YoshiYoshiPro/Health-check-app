@@ -2,3 +2,11 @@
     width: 4%;
     height: auto;
 }
+
+body {
+    background-color: #FCF2E6;
+}
+
+.border {
+    color: #BD0606;
+}
