@@ -15,3 +15,7 @@ body {
     background-color: #BD0606;
     border-color: #BD0606;
 }
+
+.character-font {
+    font-family: 'M PLUS Rounded 1c', sans-serif;
+}
