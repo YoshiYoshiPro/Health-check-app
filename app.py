@@ -373,7 +373,7 @@ def adminrole():
         # 受け取ったロールを変換
         if role == "admin":
             role = 1
-        else:
+        elif role == "ippan":
             role = 0
 
         # データベースを設定
@@ -384,7 +384,7 @@ def adminrole():
         # 送信者のユーザーIDを取得
         admin_user_id = session["user_id"]
 
-        #グループidの取得(もしsessionで取得できるならsessionで取得)
+        # グループidの取得(もしsessionで取得できるならsessionで取得)
         # group_id = session["group_id"]
 
         cur.execute("SELECT group_id FROM users WHERE user_id = ?;", (admin_user_id,))
@@ -398,7 +398,8 @@ def adminrole():
             return apology("adminrole.html", "このユーザーは存在しないか、このグループに所属していません")
 
         # roleを変更
-        cur.execute("UPDATE users SET role = ? WHERE user_id = ?;", (role, user_id,))
+        cur.execute("UPDATE users SET role = ? WHERE user_id = ?;", (role, int(user_id)))
+        conn.commit()
 
         # メンバー一覧の作成
         cur.execute("SELECT user_name, user_id, role FROM users WHERE group_id = ?;", (group_id[0]["group_id"],))
@@ -411,7 +412,7 @@ def adminrole():
                 member_list[i]["role"] = "一般"
 
         conn.close()
-        return render_template("adminrole.html", lists = member_list, role = group_id[0]["group_id"])
+        return render_template("adminrole.html", lists = member_list)
 
     else:
         # データベースを設定
