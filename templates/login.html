@@ -5,13 +5,13 @@
 {% endblock %}
 
 {% block main %}
-    <h1>ログイン</h1>
+    <h1 class="mt-4 mb-5">ログイン</h1>
     <!-- エラーメッセージ -->
     <p style="color:red">{{ message }}</p>
 
     <form action="/login" method="post">
         <div class="mb-3">
-            <p>ユーザー名</p>
+            <p>ユーザーID</p>
             <input autocomplete="off" autofocus class="form-control mx-auto w-auto" id="userid" name="userid" placeholder="メールアドレス" type="text">
         </div>
         <div class="mb-3">

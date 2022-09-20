@@ -5,11 +5,9 @@
 {% endblock %}
 
 {% block main %}
-    <h3>このグループのIDはこちらです</h3>
-    <div class="parallel">
-        <p id="copyTarget" style="color: red;"><strong>{{ groupid }}</strong></p>
+    <h3 class="mb-3">このグループのIDはこちらです</h3>
+    <div class="mb-3">
+        <h3 id="copyTarget" class="mb-4" style="color: red;"><strong>{{ groupid }}</strong></h3>
         <button onclick="copy()">コピー</button>
     </div>
-    
-    
 {% endblock %}

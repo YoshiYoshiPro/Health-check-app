@@ -1,26 +1,22 @@
 {% extends "layout.html" %}
 
 {% block title %}
-    登録
+    アカウント登録
 {% endblock %}
 
 {% block main %}
-    <h1>アカウント登録</h1>
+    <h1 class="mt-4 mb-5">アカウント登録</h1>
     <!-- エラーメッセージ -->
     <p style="color:red">{{ message }}</p>
 
     <form action="/register" method="post">
-        <p>団体ID</p>
-        <div class="mb-3">
-            <input autocomplete="off" autofocus class="form-control mx-auto w-auto" id="groupid" name="groupid" placeholder="団体ID" type="text">
-        </div>
         <p>ユーザーID</p>
         <div class="mb-3">
             <input autocomplete="off" autofocus class="form-control mx-auto w-auto" id="userid" name="userid" placeholder="ユーザーID" type="text">
         </div>
         <p>名前</p>
         <div class="mb-3">
-            <input autocomplete="off" autofocus class="form-control mx-auto w-auto" id="username" name="username" placeholder="名前" type="text">
+            <input autocomplete="off" autofocus class="form-control mx-auto w-auto" id="user_name" name="user_name" placeholder="名前" type="text">
         </div>
         <p>パスワード</p>
         <div class="mb-3">

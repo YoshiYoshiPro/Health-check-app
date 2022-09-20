@@ -9,33 +9,35 @@
     <!-- エラーメッセージ -->
     <p style="color:red">{{ message }}</p>
 
-    <p>{{ date }}</p> <p>{{ group_id }}</p>
+    <h3>{{ date_display }}</h3>
+
+    <br>
+    <p>グループID　{{ group_id }}</p>
 
     <div>
         <p>発熱者</p>
         {% for fever in fevers %}
-        <p>{{ fever["user_name"] }} {{ fever["body_temperature"] }}</p><br>
+            <p>{{ fever["user_name"] }} : {{ fever["temperature"] }}&#x2103;</p> <br>
         {% endfor %}
+    </div>
 
+    <br>
+    <div>
+        <p>体調不良者</p>
+        {% for poor_condition in poor_conditions %}
+            <p>{{ poor_condition["user_name"] }} : 頭痛: {{ poor_condition["headache"] }} 咳: {{ poor_condition["cough"] }} 倦怠感: {{ poor_condition["fatigue"] }} 味覚・嗅覚の異常: {{ poor_condition["abnormal"] }} 鼻水: {{ poor_condition["runny"] }} 備考: {{ poor_condition["memo"] }}</p> <br>
+        {% endfor %}
     </div>
 
     <br>
     <div>
         <p>未記入者</p>
         {% for no_record in no_records %}
-        {{ no_record }}<br>
+            <p>{{ no_record }}</p> <br>
         {% endfor %}
-
-    </div>
-
-    <br>
-    <div>
-        <p>体調不良者</p>
     </div>
 
     <div>
         <a href="/adminrole">管理者権限変更</a>
     </div>
-
-
 {% endblock %}

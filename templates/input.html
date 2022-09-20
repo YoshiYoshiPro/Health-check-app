@@ -1,35 +1,35 @@
 {% extends "layout.html" %}
 
 {% block title %}
-    Input
+    入力画面
 {% endblock %}
 
 {% block main %}
-    <form action="" method="post">
+    <h1 class="mt-4 mb-4">入力画面</h1>
+    <form action="/" method="post">
         <div class="mb-3">
-            <p>体温</p> <br>
-                <input autocomplete="off" autofocus class="form-control mx-auto w-auto" name="body_temperature" placeholder="体温を入力してください" type="text">
-        </div>
-        <div class="mb-3">
+            <p>体温 <br>
+                <input autocomplete="off" autofocus class="form-control mx-auto w-auto" name="body_temperature" placeholder="体温を入力してください" type="text" required>
+            </p>
             <p>鼻水・鼻づまりがないか <br>
-                <input type="radio" name="runny_nose" value="ある">ある
-                <input type="radio" name="runny_nose" value="ない">ない
+                <input type="radio" name="runny_nose" value="1" required>ある
+                <input type="radio" name="runny_nose" value="0" required>ない
             </p>
             <p>頭痛・吐き気がないか <br>
-                <input type="radio" name="headache" value="ある">ある
-                <input type="radio" name="headache" value="ない">ない
+                <input type="radio" required name="headache" value="1" >ある
+                <input type="radio" required name="headache" value="0" >ない
             </p>
             <p>息苦しさ・全身のだるさがないか <br>
-                <input type="radio" name="stuffiness" value="ある">ある
-                <input type="radio" name="stuffiness" value="ない">ない
+                <input type="radio" required name="stuffiness" value="1">ある
+                <input type="radio" required name="stuffiness" value="0">ない
             </p>
             <p>咳・のどの痛みが出ていないか <br>
-                <input type="radio" name="cough" value="ある">ある
-                <input type="radio" name="cough" value="ない">ない
+                <input type="radio" required name="cough" value="1">ある
+                <input type="radio" required name="cough" value="0">ない
             </p>
             <p>味覚・臭覚の異常がないか <br>
-                <input type="radio" name="taste_smell_abnormal" value="ある">ある
-                <input type="radio" name="taste_smell_abnormal" value="ない">ない
+                <input type="radio" required name="taste_smell_abnormal" value="1">ある
+                <input type="radio" required name="taste_smell_abnormal" value="0">ない
             </p>
         </div>
         <div class="mb-3">
