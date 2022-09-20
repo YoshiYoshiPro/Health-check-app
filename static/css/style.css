@@ -2,3 +2,20 @@
     width: 4%;
     height: auto;
 }
+
+body {
+    background-color: #FCF2E6;
+}
+
+.border {
+    color: #BD0606;
+}
+
+.btn {
+    background-color: #BD0606;
+    border-color: #BD0606;
+}
+
+.character-font {
+    font-family: 'M PLUS Rounded 1c', sans-serif;
+}
