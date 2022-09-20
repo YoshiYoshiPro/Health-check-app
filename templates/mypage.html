@@ -5,9 +5,10 @@
 {% endblock %}
 
 {% block main %}
-    <h3>マイページ</h3>
+    <link href="https://fonts.googleapis.com/earlyaccess/nicomoji.css" rel="stylesheet">
+    <h2 class="mypage">マイページ</h3>
+    {{ image | safe }}
     <table class="table">
-            
         <tbody>
             {% for d in all %}
                 <tr>

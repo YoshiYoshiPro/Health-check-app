@@ -1,13 +1,21 @@
 import os
 
+import base64
 import sqlite3
-import datetime
+import calendar
+import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib.dates as mdates
+from datetime import datetime, timedelta, date
+from matplotlib.figure import Figure
 from flask import Flask, flash, redirect, render_template, url_for, request, session
 from flask_session import Session
 from tempfile import mkdtemp
 from werkzeug.security import check_password_hash, generate_password_hash
 from datetime import datetime
 from helpers import apology, login_required, id_generator
+from io import BytesIO
+
 
 app = Flask(__name__)
 
@@ -309,7 +317,7 @@ def adminhome():
         # 発熱者
         cur.execute("SELECT users.user_name, logs.temperature FROM users INNER JOIN logs ON users.user_id = logs.user_id WHERE logs.updated_at = ? AND logs.temperature >= ?", (date, temperature,))
         fevers = cur.fetchall()
-        
+
         # 体調不良者
         cur.execute("SELECT users.user_name, log_details.headache, log_details.cough, log_details.fatigue, log_details.abnormal, log_details.runny, logs.memo FROM users INNER JOIN log_details ON log_details.user_id = users.user_id INNER JOIN logs ON logs.log_id = log_details.log_id WHERE logs.updated_at = ? AND (log_details.headache = 1 OR log_details.cough = 1 OR log_details.fatigue = 1 OR log_details.abnormal = 1 OR log_details.runny = 1)", (date,))
         poor_conditions = cur.fetchall()
@@ -478,4 +486,67 @@ def mypage():
             else:
                 i[j] = "無"
 
-    return render_template("mypage.html", details=details, logs=logs, all=all)
+    # 現時点の月を取得
+    dt_now = datetime.now()
+
+    #現時点の月の日数を計算
+    time_range = calendar.monthrange(dt_now.year, dt_now.month)[1]
+
+    # t = str(dt_now.year) + '-' + str(dt_now.month) + '-' + '1'
+    dates = [date(int(dt_now.year), int(dt_now.month) , 1) + timedelta(days=i) for i in range(time_range)]
+
+    dt1 = datetime(dt_now.year, dt_now.month, dt_now.day)
+    first_day = dt1.strftime("%Y-%m-01")
+    #first_day = str(dt_now.year) + '-' + str(dt_now.month) + '-' + '1'
+
+    if time_range == 30:
+        last_day = dt1.strftime("%Y-%m-30")
+    elif time_range == 31:
+        last_day = dt1.strftime("%Y-%m-31")
+    elif time_range == 29:
+        last_day = dt1.strftime("%Y-%m-29")
+    elif time_range == 28:
+        last_day = dt1.strftime("%Y-%m-28")
+
+    #last_day = str(dt_now.year) + '-' + str(dt_now.month) + '-' + str(time_range)
+
+    # 体温情報を30日分取得
+    cur.execute("SELECT temperature FROM logs WHERE user_id = ? AND datetime(updated_at, 'localtime') >= datetime(?, 'localtime') AND datetime(updated_at, 'localtime') <= datetime(?, 'localtime') ", (session["user_id"], first_day, last_day,))
+    results = cur.fetchall()
+    # 体温情報を収納するリスト
+    tem = [0] * time_range
+    # 体温情報があれば置換
+    for i in range(len(results)):
+        if results[i]:
+            tem[i] = results[i]["temperature"]
+
+    # グラフの生成
+    fig = plt.figure(figsize=(10, 4.0))
+    ax = fig.add_subplot(111)
+
+    # 軸ラベルの設定（日本語不可？）
+    ax.set_xlabel("date", size = 14)
+    ax.set_ylabel("body_temperature[℃]", size = 14)
+
+    ax.set_xticks(dates)
+
+    # y軸(最小値、最大値)
+    ax.set_ylim(35, 40)
+
+    ax.grid()
+
+    # x軸は日付、y軸は体温情報
+    ax.plot(dates,tem, linewidth = 2, color = "orange")
+
+    # x目盛り軸の設定
+    ax.set_xticklabels(dates, rotation=45, ha='right')
+
+    # バッファに保存
+    buf = BytesIO()
+    fig.savefig(buf, format='png')
+
+    # グラフをHTMLに埋め込めるよう変換
+    data = base64.b64encode(buf.getbuffer()).decode('ascii')
+    image_tag = f'<img src="data:image/png;base64,{data}"/>'
+
+    return render_template("mypage.html", details=details, logs=logs, all=all, image=image_tag)
