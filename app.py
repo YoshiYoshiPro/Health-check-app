@@ -32,7 +32,7 @@ def id_generator():
 
     # 文字と数字を連結
     text = uppercase + text
-    
+
     return text
 
 @app.after_request
@@ -299,9 +299,9 @@ def adminhome():
     conn.row_factory = dict_factory
     cur = conn.cursor()
 
-    # 権限を確認 dbのカラムを仮で「role」としています、role内も0を一般、1を管理者と仮定して作成しています
+    # 権限を確認 ついでにグループIDの取得
     user_id = session["user_id"]
-    cur.execute("SELECT role FROM users WHERE user_id = ?;", (user_id,))
+    cur.execute("SELECT role, group_id FROM users WHERE user_id = ?;", (user_id,))
     role = cur.fetchall()
 
     if role[0]["role"] == 1:
@@ -344,7 +344,7 @@ def adminhome():
         no_record = set(user_list) - set(recorder)
 
         conn.close()
-        return render_template("adminhome.html", date = today, fevers = fevers, no_records = no_record)
+        return render_template("adminhome.html", date = today, group_id = role[0]["group_id"], fevers = fevers, no_records = no_record)
 
     else:
         conn.close()
@@ -380,9 +380,7 @@ def adminrole():
         cur = conn.cursor()
 
         # 送信者のユーザーIDを取得
-        # admin_user_id = session["user_id"]
-        # sessionが使えないため仮置き
-        admin_user_id = 12345
+        admin_user_id = session["user_id"]
 
         #グループidの取得(もしsessionで取得できるならsessionで取得)
         # group_id = session["group_id"]
@@ -420,9 +418,8 @@ def adminrole():
         cur = conn.cursor()
 
         # 権限を確認 dbのカラムを仮で「role」としています、role内も0を一般、1を管理者と仮定して作成しています
-        # user_id = session["user_id"]
-        # user_idを仮置き
-        user_id = 12345
+        user_id = session["user_id"]
+        
         cur.execute("SELECT role FROM users WHERE user_id = ?;", (user_id,))
         role = cur.fetchall()
 
