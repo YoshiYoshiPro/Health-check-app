@@ -353,7 +353,6 @@ def adminhome():
         for j in recorder_sql:
             recorder.append(j["user_name"])
 
-
         # 集合の差集合で未記入者を判別
         no_record = set(user_list) - set(recorder)
         no_record = list(no_record)
