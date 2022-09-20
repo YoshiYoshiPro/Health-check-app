@@ -6,8 +6,10 @@
 
 {% block main %}
     <h1 class="mt-4 mb-4">マイページ</h1>
+
+    {{ image_tag | safe }}
+
     <table class="table">
-            
         <tbody>
             {% for d in all %}
                 <tr>

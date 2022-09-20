@@ -2,6 +2,10 @@ import os
 
 import sqlite3
 import datetime
+import calendar
+import base64
+from matplotlib.figure import Figure
+from io import BytesIO
 from flask import Flask, flash, redirect, render_template, url_for, request, session
 from flask_session import Session
 from tempfile import mkdtemp
@@ -461,9 +465,61 @@ def mypage():
     conn.row_factory = dict_factory
     cur = conn.cursor()
 
-    # 記録テーブルと記録詳細テーブルを結合
+    # ユーザの入力情報を取得
     cur.execute("SELECT * FROM logs INNER JOIN log_details ON logs.log_id = log_details.log_id AND log_details.user_id = ?", (session["user_id"],))
     all = cur.fetchall()
+
+    # 現時点の日を取得
+    day_now = int(datetime.now().strftime("%m"))
+
+    # 日のリスト
+    days = []
+    for i in range(day_now):
+        days.append(i)
+
+    # 現時点の月を取得
+    month_now = datetime.now().strftime("%m")
+
+    # 現時点の年を取得
+    year_now = datetime.now().strftime("%Y")
+
+    #現時点の月の日数を取得
+    month_days_range = str(calendar.monthrange(int(year_now), int(month_now))[1])
+    
+    # 月の初日を取得
+    first_day = year_now + '-' + month_now + '-01'
+    
+    # 月の最終日を取得
+    last_day = year_now + '-' + month_now + '-' + month_days_range
+    
+    # 体温情報を30日分取得
+    cur.execute("SELECT temperature FROM logs WHERE user_id = ? AND updated_at = ", (session["user_id"], first_day, last_day,))
+    temperatures_monthAll = cur.fetchall()
+
+    # 体温情報を収納するリスト
+    tem = []
+
+    # 体温情報があれば置換
+    for i in range(len(temperatures_monthAll)):
+        tem.append(i)
+
+    # グラフの生成
+    fig = Figure()
+    ax = fig.subplots()
+    # x軸は日付、y軸は体温情報
+    ax.plot(days,tem)
+
+    # バッファに保存
+    buf = BytesIO()
+    fig.savefig(buf, format='png')
+
+    # グラフをHTMLに埋め込めるよう変換
+    data = base64.b64encode(buf.getbuffer()).decode('ascii')
+    image_tag = f'<img src="data:image/png;base64,{data}"/>'
+
+    # DB接続終了
+    conn.commit()
+    conn.close()
 
     # 症状の判別を有無に置換（DBで0:無、1:有として扱っているため）
     for i in all:
@@ -473,4 +529,4 @@ def mypage():
             elif i[j] == 0:
                 i[j] = "無"
 
-    return render_template("mypage.html", all=all)
+    return render_template("mypage.html", all=all, image_tag=image_tag)
