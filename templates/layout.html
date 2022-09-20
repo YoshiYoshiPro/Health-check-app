@@ -2,10 +2,12 @@
 
 <html>
     <head>
-
         <meta lang="ja">
         <meta charset="utf-8">
         <meta name="viewport" content="initial-scale=1, width=device-width">
+
+        <!-- フォント読込 -->
+        <link href="https://fonts.googleapis.com/css?family=M+PLUS+Rounded+1c" rel="stylesheet">
 
         <!-- Bootstrap -->
         <link crossorigin="anonymous" href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" rel="stylesheet">
@@ -13,6 +15,9 @@
 
         <!-- JavaScript読込 -->
         <script type="text/javascript" src="{{ url_for('static', filename='js/script.js') }}"></script>
+
+        <!-- clipboard.jsの読込 -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/1.7.1/clipboard.min.js"></script>
 
         <!-- CSS読込 -->
         <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
@@ -24,11 +29,11 @@
     </head>
     <body>
         <header>
-            <nav class="bg-light border navbar navbar-expand-md navbar-light">
+            <nav class="border-bottom border-danger border-3 navbar navbar-expand-md navbar-light">
                 <div class="container-fluid">
 
                     <!-- ロゴ挿入箇所 -->
-                    <img id="logo-size" src="static/logo.svg">
+                    <img id="logo-size" class="m-1" src="static/logo.svg">
 
                     <!-- レスポンシブ対応のメニューバー -->
                     <button aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation" class="navbar-toggler" data-bs-target="#navbar" data-bs-toggle="collapse" type="button">
@@ -38,19 +43,19 @@
 
                         <!-- 一般ユーザーログイン -->
                         {% if session["user_id"] %}
-                            <ul class="navbar-nav me-auto mt-2">
+                            <ul class="navbar-nav me-auto mt-2 character-font">
                                 <li class="nav-item"><a class="nav-link" href="/">体温入力</a></li>
                                 <li class="nav-item"><a class="nav-link" href="/mypage">体温履歴</a></li>
                                 <li class="nav-item"><a class="nav-link" href="/groupcreate">グループ作成</a></li>
                                 <li class="nav-item"><a class="nav-link" href="/groupadd">グループ参加</a></li>
                             </ul>
-                            <ul class="navbar-nav ms-auto mt-2">
+                            <ul class="navbar-nav ms-auto mt-2 character-font">
                                 <li class="nav-item"><a class="nav-link" href="/logout">ログアウト</a></li>
                             </ul>
 
                         <!-- ログイン前 -->
                         {% else %}
-                            <ul class="navbar-nav ms-auto mt-2">
+                            <ul class="navbar-nav ms-auto mt-2 character-font">
                                 <li class="nav-item"><a class="nav-link" href="/register">アカウント登録</a></li>
                                 <li class="nav-item"><a class="nav-link" href="/login">ログイン</a></li>
                             </ul>
@@ -70,7 +75,7 @@
         {% endif %}
         -->
 
-        <main class="container-fluid py-5 text-center">
+        <main class="container-fluid py-5 text-center character-font">
             {% block main %}{% endblock %}
         </main>
 

@@ -2,12 +2,14 @@ import os
 
 import base64
 import sqlite3
-import calendar
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 from datetime import datetime, timedelta, date
+import calendar
+import base64
 from matplotlib.figure import Figure
+from io import BytesIO
 from flask import Flask, flash, redirect, render_template, url_for, request, session
 from flask_session import Session
 from tempfile import mkdtemp
@@ -229,14 +231,18 @@ def groupcreate():
         # グループIDの初期化
         groupid = ""
 
-        # グループIDがかぶらないようにIDを生成するループ処理
-        for checker in checkers:
-            # グループIDを生成
-            groupid = id_generator()
+        # 初期にグループを登録する場合
+        if checkers:
+            # グループIDがかぶらないようにIDを生成するループ処理
+            for checker in checkers:
+                # グループIDを生成
+                groupid = id_generator()
 
-            # グループIDが重複している場合
-            if groupid == checker:
-                continue
+                # グループIDが重複している場合
+                if groupid == checker:
+                    continue
+        else:
+            groupid = id_generator()
 
         # データベースに登録
         newdata = (groupid, groupname)
@@ -263,7 +269,7 @@ def groupadd():
     if request.method == "POST":
 
         # 空欄チェック
-        groupid = request.form.get('groupid')
+        groupid = str(request.form.get('groupid'))
         input_check(groupid, "groupadd.html", "グループIDを入力してください")
 
         # データベース接続
@@ -277,10 +283,10 @@ def groupadd():
             return apology("groupadd.html", "グループIDが間違っております。")
 
         # ユーザーIDにグループIDを追加する
-        cur.execute("UPDATE users SET group_id = ? WHERE user_id = ?",(groupid, session["user_id"]))
+        cur.execute("UPDATE users SET group_id = ? WHERE user_id = ?", (groupid, session["user_id"]))
 
         # グループ作成者に管理者権限を付与
-        cur.execute("UPDATE users SET role = 1 WHERE user_id = ?",(session["user_id"],))
+        cur.execute("UPDATE users SET role = 1 WHERE user_id = ?", (session["user_id"],))
 
         # DB接続終了
         conn.commit()
@@ -301,9 +307,9 @@ def adminhome():
     conn.row_factory = dict_factory
     cur = conn.cursor()
 
-    # 権限を確認 dbのカラムを仮で「role」としています、role内も0を一般、1を管理者と仮定して作成しています
+    # 権限を確認 ついでにグループIDの取得
     user_id = session["user_id"]
-    cur.execute("SELECT role FROM users WHERE user_id = ?", (user_id,))
+    cur.execute("SELECT role, group_id FROM users WHERE user_id = ?;", (user_id,))
     role = cur.fetchall()
 
     if role[0]["role"] == 1:
@@ -322,12 +328,13 @@ def adminhome():
         cur.execute("SELECT users.user_name, log_details.headache, log_details.cough, log_details.fatigue, log_details.abnormal, log_details.runny, logs.memo FROM users INNER JOIN log_details ON log_details.user_id = users.user_id INNER JOIN logs ON logs.log_id = log_details.log_id WHERE logs.updated_at = ? AND (log_details.headache = 1 OR log_details.cough = 1 OR log_details.fatigue = 1 OR log_details.abnormal = 1 OR log_details.runny = 1)", (date,))
         poor_conditions = cur.fetchall()
 
-        # データの整形
-        # conditionCheckers = []
-        # for i in poor_conditions:
-        #     for j in i:
-        #         if i[j] == 1:
-        #             conditionCheckers.append(j)
+        # 症状の判別を有無に置換（DBで0:無、1:有として扱っているため）
+        for i in poor_conditions:
+            for j in i:
+                if i[j] == 1:
+                    i[j] = "有"
+                elif i[j] == 0:
+                    i[j] = "無"
 
         # 未記入者
         groupid = str(cur.execute("SELECT group_id FROM users WHERE user_id = ?", (session["user_id"],)))
@@ -339,21 +346,22 @@ def adminhome():
         user_list = []
         recorder = []
 
-        for i in range(len(user_sql)):
-            user_list.append(user_sql[i]["user_name"])
+        for i in user_sql:
+            user_list.append(i["user_name"])
 
-        for j in range(len(recorder_sql)):
-            recorder.append(recorder_sql[j]["user_name"])
+        for j in recorder_sql:
+            recorder.append(j["user_name"])
 
-
+        # 集合の差集合で未記入者を判別
         no_records = set(user_list) - set(recorder)
 
         conn.close()
-        return render_template("adminhome.html", date=date, fevers=fevers, no_records=no_records, poor_conditions=poor_conditions, date_display=date_display)
+        return render_template("adminhome.html", date=date, group_id = role[0]["group_id"], fevers=fevers, no_records=no_records, poor_conditions=poor_conditions, date_display=date_display)
 
     else:
         conn.close()
-        return apology("adminhome.html", "管理者権限がありません")
+        # ユーザーを体温報告ページに移動させる。「管理者権限がありません。」というメッセージを表示したいのですが、やり方がわからないため保留
+        return redirect("/")
 
 
 @app.route("/adminrole", methods=["GET", "POST"])
@@ -363,14 +371,14 @@ def adminrole():
 
         # ユーザーIDが入力されていなかったらエラーを表示する
         if not request.form.get("user_id"):
-            return render_template("adminerror.html", message = "ユーザーIDを入力してください")
+            return apology("adminrole.html", "ユーザーIDを入力してください")
 
         user_id = request.form.get("user_id")
         role = request.form.get("role")
 
         # 受け取ったユーザーIDが数字であることを確認
         if str.isdigit(user_id) == False:
-            return render_template("adminerror.html", message = "ユーザーIDは数字のみで入力してください")
+            return apology("adminrole.html", "ユーザーIDは数字のみで入力してください")
 
         # 受け取ったロールを変換
         if role == "admin":
@@ -384,9 +392,7 @@ def adminrole():
         cur = conn.cursor()
 
         # 送信者のユーザーIDを取得
-        # admin_user_id = session["user_id"]
-        # sessionが使えないため仮置き
-        admin_user_id = 12345
+        admin_user_id = session["user_id"]
 
         #グループidの取得(もしsessionで取得できるならsessionで取得)
         # group_id = session["group_id"]
@@ -399,10 +405,10 @@ def adminrole():
         user = cur.fetchall()
 
         if len(user) == 0:
-            return render_template("adminerror.html", message = "このユーザーは存在しないか、このグループに所属していません")
+            return apology("adminrole.html", "このユーザーは存在しないか、このグループに所属していません")
 
         # roleを変更
-        cur.execute("UPDATE users SET role = ? WHERE user_id = ?;", (role, int(user_id)))
+        cur.execute("UPDATE users SET role = ? WHERE user_id = ?;", (role, user_id,))
 
         # メンバー一覧の作成
         cur.execute("SELECT user_name, user_id, role FROM users WHERE group_id = ?;", (group_id[0]["group_id"],))
@@ -424,9 +430,8 @@ def adminrole():
         cur = conn.cursor()
 
         # 権限を確認 dbのカラムを仮で「role」としています、role内も0を一般、1を管理者と仮定して作成しています
-        # user_id = session["user_id"]
-        # user_idを仮置き
-        user_id = 12345
+        user_id = session["user_id"]
+
         cur.execute("SELECT role FROM users WHERE user_id = ?;", (user_id,))
         role = cur.fetchall()
 
@@ -453,7 +458,8 @@ def adminrole():
 
         else:
             conn.close()
-            return render_template("adminerror.html", message = "管理者権限がありません。")
+            # ユーザーを体温報告ページに移動させる。 「管理者権限がありません。」というメッセージを表示したいのですが、やり方がわからないため保留
+            return redirect("/")
 
 
 @app.route("/mypage")
@@ -465,56 +471,42 @@ def mypage():
     conn.row_factory = dict_factory
     cur = conn.cursor()
 
-    # ユーザーIDの取得
-    user_id = cur.execute("SELECT user_id FROM users WHERE user_id = ?", (session["user_id"],))
-
-    # 記録の詳細を取得
-    details = cur.execute("SELECT * FROM log_details WHERE user_id = ?", (session["user_id"],))
-
-    # 記録を取得
-    logs = cur.execute("SELECT * FROM logs WHERE user_id = ?", (session["user_id"],))
-
-    # 記録テーブルと記録詳細テーブルを結合
+    # ユーザの入力情報を取得
     cur.execute("SELECT * FROM logs INNER JOIN log_details ON logs.log_id = log_details.log_id AND log_details.user_id = ?", (session["user_id"],))
     all = cur.fetchall()
 
-    # 症状の判別を有無に置換（DBで0:無、1:有として扱っているため）
-    for i in all:
-        for j in i:
-            if i[j] == 1:
-                i[j] = "有"
-            else:
-                i[j] = "無"
-
-    # 現時点の月を取得
+    # 現時点
     dt_now = datetime.now()
 
     #現時点の月の日数を計算
-    time_range = calendar.monthrange(dt_now.year, dt_now.month)[1]
+    month_days_range = calendar.monthrange(dt_now.year, dt_now.month)[1]
 
-    # t = str(dt_now.year) + '-' + str(dt_now.month) + '-' + '1'
-    dates = [date(int(dt_now.year), int(dt_now.month) , 1) + timedelta(days=i) for i in range(time_range)]
+    # 日のデータを収納するリスト（横軸に使用）
+    dates = [date(int(dt_now.year), int(dt_now.month) , 1) + timedelta(days=i) for i in range(month_days_range)]
 
+    # 現時点の年月日を取得
     dt1 = datetime(dt_now.year, dt_now.month, dt_now.day)
-    first_day = dt1.strftime("%Y-%m-01")
-    #first_day = str(dt_now.year) + '-' + str(dt_now.month) + '-' + '1'
 
-    if time_range == 30:
-        last_day = dt1.strftime("%Y-%m-30")
-    elif time_range == 31:
+    # 月の初めを取得
+    first_day = dt1.strftime("%Y-%m-01")
+
+    # 月の最終日を取得（もっとスマートな方法があれば変える）
+    if time_range == 31:
         last_day = dt1.strftime("%Y-%m-31")
+    elif time_range == 30:
+        last_day = dt1.strftime("%Y-%m-3")
     elif time_range == 29:
         last_day = dt1.strftime("%Y-%m-29")
     elif time_range == 28:
         last_day = dt1.strftime("%Y-%m-28")
 
-    #last_day = str(dt_now.year) + '-' + str(dt_now.month) + '-' + str(time_range)
-
-    # 体温情報を30日分取得
+    # 体温情報を一月分取得（BETWEENでもいいかも）
     cur.execute("SELECT temperature FROM logs WHERE user_id = ? AND datetime(updated_at, 'localtime') >= datetime(?, 'localtime') AND datetime(updated_at, 'localtime') <= datetime(?, 'localtime') ", (session["user_id"], first_day, last_day,))
     results = cur.fetchall()
+
     # 体温情報を収納するリスト
     tem = [0] * time_range
+
     # 体温情報があれば置換
     for i in range(len(results)):
         if results[i]:
@@ -524,15 +516,17 @@ def mypage():
     fig = plt.figure(figsize=(10, 4.0))
     ax = fig.add_subplot(111)
 
-    # 軸ラベルの設定（日本語不可？）
+    # 軸ラベルの設定（日本語でもできるが詳細な設定が必要）
     ax.set_xlabel("date", size = 14)
     ax.set_ylabel("body_temperature[℃]", size = 14)
 
+    # x軸の目盛りラベル
     ax.set_xticks(dates)
 
     # y軸(最小値、最大値)
     ax.set_ylim(35, 40)
 
+    # 目盛り線表示
     ax.grid()
 
     # x軸は日付、y軸は体温情報
@@ -549,4 +543,16 @@ def mypage():
     data = base64.b64encode(buf.getbuffer()).decode('ascii')
     image_tag = f'<img src="data:image/png;base64,{data}"/>'
 
-    return render_template("mypage.html", details=details, logs=logs, all=all, image=image_tag)
+    # DB接続終了
+    conn.commit()
+    conn.close()
+
+    # 症状の判別を有無に置換（DBで0:無、1:有として扱っているため）
+    for i in all:
+        for j in i:
+            if i[j] == 1:
+                i[j] = "有"
+            elif i[j] == 0:
+                i[j] = "無"
+
+    return render_template("mypage.html", details=details, logs=logs, all=all, image_tag=image_tag)
