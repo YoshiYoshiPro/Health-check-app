@@ -7,13 +7,15 @@
 {% block main %}
     <link href="https://fonts.googleapis.com/earlyaccess/nicomoji.css" rel="stylesheet">
     <h2 class="mypage">マイページ</h3>
+
     {{ image_tag | safe }}
+
     <table class="table">
         <tbody>
             {% for d in all %}
                 <tr>
                     <td>{{ d.datetime }}</td>
-                    <td>体温：{{ d.temperature }}&#x2103;</td>
+                    <td>体温：{{ d.temperature }}</td>
                     <td>頭痛：{{d.headache }}</td>
                     <td>咳：{{ d.cough }}</td>
                     <td>倦怠感：{{ d.fatigue }}</td>

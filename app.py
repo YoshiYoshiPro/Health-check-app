@@ -307,9 +307,9 @@ def adminhome():
     conn.row_factory = dict_factory
     cur = conn.cursor()
 
-    # 権限を確認 ついでにグループIDの取得
+    # 権限を確認
     user_id = session["user_id"]
-    cur.execute("SELECT role, group_id FROM users WHERE user_id = ?;", (user_id,))
+    cur.execute("SELECT role FROM users WHERE user_id = ?;", (user_id,))
     role = cur.fetchall()
 
     if role[0]["role"] == 1:
@@ -337,14 +337,15 @@ def adminhome():
                     i[j] = "無"
 
         # 未記入者
-        groupid = str(cur.execute("SELECT group_id FROM users WHERE user_id = ?", (session["user_id"],)))
-        cur.execute("SELECT user_name FROM users WHERE group_id = ?", (groupid,))
+        cur.execute("SELECT group_id FROM users WHERE user_id = ?", (session["user_id"],))
+        groupid = cur.fetchall()
+        cur.execute("SELECT user_name FROM users WHERE group_id = ?", (groupid[0]["group_id"],))
         user_sql = cur.fetchall()
-        cur.execute("SELECT user_name FROM users INNER JOIN logs ON logs.user_id = users.user_id WHERE logs.updated_at = ?", (date,))
+        cur.execute("SELECT user_name FROM users INNER JOIN logs ON logs.user_id = users.user_id WHERE logs.updated_at = ? and users.group_id = ?", (date, groupid[0]["group_id"]))
         recorder_sql = cur.fetchall()
 
-        user_list = []
-        recorder = []
+        user_list = list()
+        recorder = list()
 
         for i in user_sql:
             user_list.append(i["user_name"])
@@ -352,11 +353,13 @@ def adminhome():
         for j in recorder_sql:
             recorder.append(j["user_name"])
 
+
         # 集合の差集合で未記入者を判別
-        no_records = set(user_list) - set(recorder)
+        no_record = set(user_list) - set(recorder)
+        no_record = list(no_record)
 
         conn.close()
-        return render_template("adminhome.html", date=date, group_id = role[0]["group_id"], fevers=fevers, no_records=no_records, poor_conditions=poor_conditions, date_display=date_display)
+        return render_template("adminhome.html", date=date, fevers=fevers, no_records=no_record, poor_conditions=poor_conditions, date_display=date_display)
 
     else:
         conn.close()
@@ -383,7 +386,7 @@ def adminrole():
         # 受け取ったロールを変換
         if role == "admin":
             role = 1
-        else:
+        elif role == "ippan":
             role = 0
 
         # データベースを設定
@@ -394,7 +397,7 @@ def adminrole():
         # 送信者のユーザーIDを取得
         admin_user_id = session["user_id"]
 
-        #グループidの取得(もしsessionで取得できるならsessionで取得)
+        # グループidの取得(もしsessionで取得できるならsessionで取得)
         # group_id = session["group_id"]
 
         cur.execute("SELECT group_id FROM users WHERE user_id = ?;", (admin_user_id,))
@@ -408,7 +411,8 @@ def adminrole():
             return apology("adminrole.html", "このユーザーは存在しないか、このグループに所属していません")
 
         # roleを変更
-        cur.execute("UPDATE users SET role = ? WHERE user_id = ?;", (role, user_id,))
+        cur.execute("UPDATE users SET role = ? WHERE user_id = ?;", (role, int(user_id)))
+        conn.commit()
 
         # メンバー一覧の作成
         cur.execute("SELECT user_name, user_id, role FROM users WHERE group_id = ?;", (group_id[0]["group_id"],))
@@ -421,7 +425,7 @@ def adminrole():
                 member_list[i]["role"] = "一般"
 
         conn.close()
-        return render_template("adminrole.html", lists = member_list, role = group_id[0]["group_id"])
+        return render_template("adminrole.html", lists = member_list)
 
     else:
         # データベースを設定
@@ -491,21 +495,23 @@ def mypage():
     first_day = dt1.strftime("%Y-%m-01")
 
     # 月の最終日を取得（もっとスマートな方法があれば変える）
-    if time_range == 31:
+    if  month_days_range == 31:
         last_day = dt1.strftime("%Y-%m-31")
-    elif time_range == 30:
+    elif month_days_range == 30:
         last_day = dt1.strftime("%Y-%m-3")
-    elif time_range == 29:
+    elif month_days_range == 29:
         last_day = dt1.strftime("%Y-%m-29")
-    elif time_range == 28:
+    elif month_days_range == 28:
         last_day = dt1.strftime("%Y-%m-28")
 
-    # 体温情報を一月分取得（BETWEENでもいいかも）
-    cur.execute("SELECT temperature FROM logs WHERE user_id = ? AND datetime(updated_at, 'localtime') >= datetime(?, 'localtime') AND datetime(updated_at, 'localtime') <= datetime(?, 'localtime') ", (session["user_id"], first_day, last_day,))
+    # 体温情報を一月分取得（BETWEENだとうまくいく）
+    # cur.execute("SELECT temperature FROM logs WHERE user_id = ? AND datetime(updated_at, 'localtime') >= datetime(?, 'localtime') AND datetime(updated_at, 'localtime') <= datetime(?, 'localtime') ", (session["user_id"], first_day, last_day,))
+    cur.execute("SELECT temperature FROM logs WHERE user_id = ? AND updated_at BETWEEN ? AND ? ", (session["user_id"], first_day, last_day,))
+
     results = cur.fetchall()
 
     # 体温情報を収納するリスト
-    tem = [0] * time_range
+    tem = [0] * month_days_range
 
     # 体温情報があれば置換
     for i in range(len(results)):
@@ -555,4 +561,4 @@ def mypage():
             elif i[j] == 0:
                 i[j] = "無"
 
-    return render_template("mypage.html", details=details, logs=logs, all=all, image_tag=image_tag)
+    return render_template("mypage.html", all=all, image_tag=image_tag)
