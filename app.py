@@ -276,7 +276,7 @@ def groupadd():
         cur.execute("UPDATE users SET group_id = ? WHERE user_id = ?", (groupid, session["user_id"]))
 
         # グループ作成者に管理者権限を付与
-        cur.execute("UPDATE users SET role = 1 WHERE user_id = ?", (session["user_id"],))
+        # cur.execute("UPDATE users SET role = 1 WHERE user_id = ?", (session["user_id"],))
 
         # DB接続終了
         conn.commit()
