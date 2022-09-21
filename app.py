@@ -195,8 +195,8 @@ def register():
         password_hash = generate_password_hash(password, method="sha256")
 
         # データベースに登録
-        newdata = (userid, user_name, password_hash, 1)
-        cur.execute("INSERT INTO users (user_id, user_name, hash, role) VALUES(?, ?, ?, ?)", (newdata))
+        newdata = (userid, user_name, password_hash)
+        cur.execute("INSERT INTO users (user_id, user_name, hash) VALUES(?, ?, ?)", (newdata))
         conn.commit()
         conn.close()
 
