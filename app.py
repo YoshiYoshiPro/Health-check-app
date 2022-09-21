@@ -1,3 +1,4 @@
+from email import message
 import os
 
 import base64
@@ -312,6 +313,7 @@ def adminhome():
     cur.execute("SELECT role FROM users WHERE user_id = ?;", (user_id,))
     role = cur.fetchall()
 
+    # 管理者権限がある人
     if role[0]["role"] == 1:
         # 日付の取得
         date = datetime.now().strftime("%Y-%m-%d")
@@ -360,10 +362,11 @@ def adminhome():
         conn.close()
         return render_template("adminhome.html", date=date, fevers=fevers, no_records=no_record, poor_conditions=poor_conditions, date_display=date_display)
 
+    # 管理者権限がない人
     else:
         conn.close()
         # ユーザーを体温報告ページに移動させる。「管理者権限がありません。」というメッセージを表示したいのですが、やり方がわからないため保留
-        return redirect("/")
+        return render_template("noAuthorization.html", message="管理者権限がありません")
 
 
 @app.route("/adminrole", methods=["GET", "POST"])
