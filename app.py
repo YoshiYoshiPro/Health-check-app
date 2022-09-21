@@ -100,7 +100,6 @@ def index():
             redirect("/login")
         return render_template("input.html")
 
-
 # ログイン画面
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -135,6 +134,7 @@ def login():
 
         # ログインしたユーザーを記憶する
         session["user_id"] = rows[0]["user_id"]
+
         # ファイルを閉じる
         conn.close()
         # ユーザーを体温報告ページに移動させる。
@@ -195,14 +195,19 @@ def register():
         # データベースに登録
         newdata = (userid, user_name, password_hash)
         cur.execute("INSERT INTO users (user_id, user_name, hash) VALUES(?, ?, ?)", (newdata))
+
+        # データべースの接続終了
         conn.commit()
         conn.close()
 
-        # フラッシュメッセージ
-        flash("アカウント登録完了しました")
+        # アカウント登録したユーザーを記憶する
+        session["user_id"] = userid
 
-        # リダイレクトでログイン画面に移動
-        return render_template("input.html")
+        # フラッシュメッセージ
+        flash("登録完了しました")
+
+        # リダイレクトで入力画面に移動
+        return redirect("/")
 
     # getの場合は登録画面をレンダリング
     else:
