@@ -3,6 +3,7 @@ import os
 
 import base64
 import sqlite3
+from unittest import result
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
@@ -280,6 +281,7 @@ def groupadd():
 
         # データベース接続
         conn = sqlite3.connect("health.db")
+        conn.row_factory = dict_factory
         cur = conn.cursor()
 
         # データベースにグループ名とIDがあるかどうか確認
@@ -291,15 +293,24 @@ def groupadd():
         # ユーザーIDにグループIDを追加する
         cur.execute("UPDATE users SET group_id = ? WHERE user_id = ?", (groupid, session["user_id"]))
 
-        # グループ作成者に管理者権限を付与
-        # cur.execute("UPDATE users SET role = 1 WHERE user_id = ?", (session["user_id"],))
+        # ユーザーの権限を取得
+        cur.execute("SELECT role FROM users WHERE user_id = ?", (session["user_id"],))
+        role = cur.fetchall()
+
+        # 管理者権限がある人
+        if role[0]["role"] == 1:
+            # 管理者ページのボタンを表示
+            display_check = 1
+        else:
+            # 管理者ページのボタンを非表示
+            display_check = 0
 
         # DB接続終了
         conn.commit()
         conn.close()
 
-        # ユーザーを体温報告ページに移動させる。
-        return render_template("groupadd_ok.html")
+        # ユーザーを体温報告ページに移動させる
+        return render_template("groupadd_ok.html", display_check=display_check)
 
     # GET経由ならログイン画面を表示させる
     else:
