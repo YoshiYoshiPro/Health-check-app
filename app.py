@@ -22,10 +22,8 @@ from io import BytesIO
 
 app = Flask(__name__)
 
-# Ensure templates are auto-reloaded 必要？
 app.config["TEMPLATES_AUTO_RELOAD"] = True
 
-# Configure session to use filesystem (instead of signed cookies) 必要？
 app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
@@ -162,7 +160,6 @@ def logout():
 @app.route("/register", methods=["GET", "POST"])
 def register():
 
-    # postで入ってきたらデータベースに登録の処理を実行
     if request.method == "POST":
 
         userid = request.form.get('userid')
@@ -201,10 +198,13 @@ def register():
         conn.commit()
         conn.close()
 
-        # リダイレクトでログイン画面に移動
-        return render_template("register_ok.html")
+        # フラッシュメッセージ
+        flash("アカウント登録完了しました")
 
-    # getの場合は登録画面になります。
+        # リダイレクトでログイン画面に移動
+        return render_template("input.html")
+
+    # getの場合は登録画面をレンダリング
     else:
         return render_template("register.html")
 
@@ -365,7 +365,7 @@ def adminhome():
     # 管理者権限がない人
     else:
         conn.close()
-        # ユーザーを体温報告ページに移動させる。「管理者権限がありません。」というメッセージを表示したいのですが、やり方がわからないため保留
+        # ユーザーを体温報告ページに移動させる。
         return render_template("noAuthorization.html", message="管理者権限がありません")
 
 

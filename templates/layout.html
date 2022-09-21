@@ -41,7 +41,7 @@
                     </button>
                     <div class="collapse navbar-collapse" id="navbar">
 
-                        <!-- 一般ユーザーログイン -->
+                        <!-- ログイン後 -->
                         {% if session["user_id"] %}
                             <ul class="navbar-nav me-auto mt-2 character-font">
                                 <li class="nav-item"><a class="nav-link" href="/">体温入力</a></li>
@@ -66,15 +66,14 @@
             </nav>
         </header>
 
-        <!--
+        <!-- フラッシュメッセージの表示 -->
         {% if get_flashed_messages() %}
             <header>
-                <div class="alert alert-primary mb-0 text-center" role="alert">
+                <div class="alert text-center flasher" role="alert">
                     {{ get_flashed_messages() | join(" ") }}
                 </div>
             </header>
         {% endif %}
-        -->
 
         <main class="container-fluid py-5 text-center character-font">
             {% block main %}{% endblock %}

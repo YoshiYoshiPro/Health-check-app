@@ -44,6 +44,11 @@ body {
     z-index:-2;
 }
 
+.flasher {
+    background-color: #f1aaaa;
+    color: #ffffffdc;
+}
+
 /* .mypage:before{
     position: absolute;
     content: '';
