@@ -1,15 +1,14 @@
-from email import message
 import os
-
 import base64
 import sqlite3
-from unittest import result
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
-from datetime import datetime, timedelta, date
 import calendar
 import base64
+from email import message
+from unittest import result
+from datetime import datetime, timedelta, date
 from matplotlib.figure import Figure
 from io import BytesIO
 from flask import Flask, flash, redirect, render_template, url_for, request, session
@@ -37,6 +36,7 @@ def after_request(response):
     response.headers["Expires"] = 0
     response.headers["Pragma"] = "no-cache"
     return response
+    
 
 # 取り出したSQliteデータを辞書型に変換
 def dict_factory(cursor, row):
@@ -49,7 +49,7 @@ def dict_factory(cursor, row):
 # 入力の空欄チェック
 def input_check(inputtext, html, message):
     if not inputtext:
-        return apology(html, message)
+        return True
 
 
 # 体温報告画面
@@ -113,7 +113,9 @@ def login():
 
         # ユーザー名が空ではないことを確認する
         userid = request.form.get("userid")
-        input_check(userid,"login.html", "ユーザーIDを入力してください")
+        # input_check(userid,"login.html", "ユーザーIDを入力してください")
+        if userid:
+            return apology()
 
         # パスワードが空ではないことを確認する
         input_check(request.form.get("password"), "login.html", "パスワードを入力して下さい")
