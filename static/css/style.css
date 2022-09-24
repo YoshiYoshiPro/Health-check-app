@@ -49,6 +49,10 @@ body {
     color: #ffffffdc;
 }
 
+input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+}
+
 /* .mypage:before{
     position: absolute;
     content: '';
