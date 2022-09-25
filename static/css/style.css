@@ -1,4 +1,3 @@
-
 #logo-size {
     width: 4%;
     height: auto;
@@ -47,6 +46,10 @@ body {
 .flasher {
     background-color: #f1aaaa;
     color: #ffffffdc;
+}
+
+input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
 }
 
 /* .mypage:before{
