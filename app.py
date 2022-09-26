@@ -2,6 +2,8 @@ import os
 import base64
 import sqlite3
 import numpy as np
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 import calendar
@@ -81,6 +83,7 @@ def index():
             # 体温、備考情報を記録テーブルに挿入
             cur.execute("INSERT INTO logs(user_id, temperature, memo, updated_at) VALUES (?,?,?,?)",\
                         (session["user_id"], temperature, memo, datetime.now().strftime("%Y-%m-%d")))
+            conn.commit()
             # log_idを取得
             cur.execute("SELECT log_id FROM logs ORDER BY log_id DESC LIMIT 1")
             i = cur.fetchall()
@@ -89,14 +92,15 @@ def index():
             # 記録詳細テーブルに挿入
             cur.execute("INSERT INTO log_details(log_id,user_id,headache,cough,fatigue,abnormal,runny) VALUES (?,?,?,?,?,?,?)",\
                         (log_id, session["user_id"], headache, cough, fatigue, abnormal, runny),)
+            conn.commit()
         else:
             # 体温、備考情報を更新
             log_id = i[0]["log_id"]
             cur.execute("UPDATE logs SET temperature = ?, memo = ? WHERE log_id = ?", (temperature, memo, log_id))
             cur.execute("UPDATE log_details SET headache = ?, cough= ?, fatigue = ?, abnormal = ?, runny = ? WHERE log_id = ?", \
                         (headache, cough, fatigue, abnormal, runny, log_id,))
+            conn.commit()
 
-        conn.commit()
         conn.close()
         
         flash("情報を更新しました。")
@@ -116,7 +120,7 @@ def index():
         # 今日まだ入力していない場合
         if not logs_data:        
             conn.close()   
-            return render_template("input.html",runny_nose0="checked", headache0="checked", stuffiness0="checked", cough0="checked",taste_smell_abnormal0="checked")
+            return render_template("input.html",runny_nose0="checked", headache0="checked", stuffiness0="checked", cough0="checked", taste_smell_abnormal0="checked")
         
         # 入力している場合
         else:
@@ -317,36 +321,45 @@ def groupadd():
         cur = conn.cursor()
 
         # データベースにグループ名とIDがあるかどうか確認
-        checker = cur.execute("SELECT group_id FROM groups WHERE group_id = ?", (groupid,))
-        if not checker:
+        cur.execute("SELECT group_name FROM groups WHERE group_id = ?", (groupid,))
+        group_name = cur.fetchall()
+        if not group_name:
             conn.close()
             return apology("groupadd.html", "グループIDが間違っております。")
 
         # ユーザーIDにグループIDを追加する
-        cur.execute("UPDATE users SET group_id = ? WHERE user_id = ?", (groupid, session["user_id"]))
-
-        # ユーザーの権限を取得
-        cur.execute("SELECT role FROM users WHERE user_id = ?", (session["user_id"],))
-        role = cur.fetchall()
-
-        # 管理者権限がある人
-        if role[0]["role"] == 1:
-            # 管理者ページのボタンを表示
-            display_check = 1
-        else:
-            # 管理者ページのボタンを非表示
-            display_check = 0
+        cur.execute("UPDATE users SET role = 0, group_id = ? WHERE user_id = ?", (groupid, session["user_id"]))
 
         # DB接続終了
         conn.commit()
         conn.close()
 
         # ユーザーを体温報告ページに移動させる
-        return render_template("groupadd_ok.html", display_check=display_check)
+        return render_template("groupadd_ok.html", group_name=group_name[0]["group_name"])
 
     # GET経由ならログイン画面を表示させる
     else:
         return render_template("groupadd.html")
+
+# グループ脱退
+@app.route("/groupgetout")
+def groupgetout():
+
+    conn = sqlite3.connect("health.db")
+    conn.row_factory = dict_factory
+    cur = conn.cursor()
+
+    #usersテーブルのgroup_idをNULLにする
+    cur.execute("UPDATE users SET roll = 0, group_id = NULL WHERE user_id = ?",(session["user_id"],))
+
+    conn.commit()
+    conn.close()
+
+    # フラッシュメッセージ
+    flash("グループから脱退しました。")
+
+    # リダイレクトでマイページに移動
+    return redirect("/mypage")
 
 
 # 管理ページ
@@ -458,6 +471,7 @@ def adminrole():
         user = cur.fetchall()
 
         if len(user) == 0:
+            conn.close()
             return apology("adminrole.html", "このユーザーは存在しないか、このグループに所属していません")
 
         # roleを変更
@@ -548,7 +562,7 @@ def mypage():
     if  month_days_range == 31:
         last_day = dt1.strftime("%Y-%m-31")
     elif month_days_range == 30:
-        last_day = dt1.strftime("%Y-%m-3")
+        last_day = dt1.strftime("%Y-%m-30")
     elif month_days_range == 29:
         last_day = dt1.strftime("%Y-%m-29")
     elif month_days_range == 28:
@@ -599,8 +613,8 @@ def mypage():
     data = base64.b64encode(buf.getbuffer()).decode('ascii')
     image_tag = f'<img src="data:image/png;base64,{data}"/>'
 
-    # DB接続終了
-    conn.commit()
+    # DB接続終了,グラフの閉め
+    plt.close()
     conn.close()
 
     # 症状の判別を有無に置換（DBで0:無、1:有として扱っているため）
