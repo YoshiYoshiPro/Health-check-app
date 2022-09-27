@@ -1,15 +1,14 @@
-from email import message
 import os
-
 import base64
 import sqlite3
-from unittest import result
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
-from datetime import datetime, timedelta, date
 import calendar
 import base64
+from email import message
+from unittest import result
+from datetime import datetime, timedelta, date
 from matplotlib.figure import Figure
 from io import BytesIO
 from flask import Flask, flash, redirect, render_template, url_for, request, session
@@ -37,6 +36,7 @@ def after_request(response):
     response.headers["Expires"] = 0
     response.headers["Pragma"] = "no-cache"
     return response
+    
 
 # 取り出したSQliteデータを辞書型に変換
 def dict_factory(cursor, row):
@@ -44,12 +44,6 @@ def dict_factory(cursor, row):
     for idx, col in enumerate(cursor.description):
         d[col[0]] = row[idx]
     return d
-
-
-# 入力の空欄チェック
-def input_check(inputtext, html, message):
-    if not inputtext:
-        return apology(html, message)
 
 
 # 体温報告画面
@@ -71,36 +65,87 @@ def index():
 
         # 備考を取得
         memo = request.form.get("memo")
+    
+        # 詳細情報を取得
+        headache = int(request.form.get("headache"))
+        cough = int(request.form.get("cough"))
+        fatigue = int(request.form.get("stuffiness"))
+        abnormal = int(request.form.get("taste_smell_abnormal"))
+        runny = int(request.form.get("runny_nose"))
 
-        # 体温、備考情報を記録テーブルに挿入
-        cur.execute("INSERT INTO logs(user_id, temperature, memo, updated_at) VALUES (?,?,?,?)",
-                        (session["user_id"], temperature, memo, datetime.now().strftime("%Y-%m-%d")))
-
-        cur.execute("SELECT log_id FROM logs ORDER BY log_id DESC LIMIT 1")
+        #今日既に体温報告をしているかどうか確認
+        cur.execute("SELECT log_id FROM logs WHERE user_id = ? AND updated_at = ?", (session["user_id"], datetime.now().strftime("%Y-%m-%d")))
         i = cur.fetchall()
-        log_id = i[0]["log_id"]
 
-        headache = request.form.get("headache")
-        cough = request.form.get("cough")
-        fatigue = request.form.get("stuffiness")
-        abnormal = request.form.get("taste_smell_abnormal")
-        runny = request.form.get("runny_nose")
+        if not i:
+            # 体温、備考情報を記録テーブルに挿入
+            cur.execute("INSERT INTO logs(user_id, temperature, memo, updated_at) VALUES (?,?,?,?)",\
+                        (session["user_id"], temperature, memo, datetime.now().strftime("%Y-%m-%d")))
+            # log_idを取得
+            cur.execute("SELECT log_id FROM logs ORDER BY log_id DESC LIMIT 1")
+            i = cur.fetchall()
+            log_id = i[0]["log_id"]
 
-        # 記録詳細テーブルに挿入
-        cur.execute("INSERT INTO log_details(log_id,user_id,headache,cough,fatigue,abnormal,runny) VALUES (?,?,?,?,?,?,?)",
-                    (log_id, session["user_id"], int(headache), int(cough), int(fatigue), int(abnormal), int(runny),))
+            # 記録詳細テーブルに挿入
+            cur.execute("INSERT INTO log_details(log_id,user_id,headache,cough,fatigue,abnormal,runny) VALUES (?,?,?,?,?,?,?)",\
+                        (log_id, session["user_id"], headache, cough, fatigue, abnormal, runny),)
+        else:
+            # 体温、備考情報を更新
+            log_id = i[0]["log_id"]
+            cur.execute("UPDATE logs SET temperature = ?, memo = ? WHERE log_id = ?", (temperature, memo, log_id))
+            cur.execute("UPDATE log_details SET headache = ?, cough= ?, fatigue = ?, abnormal = ?, runny = ? WHERE log_id = ?", \
+                        (headache, cough, fatigue, abnormal, runny, log_id,))
 
         conn.commit()
         conn.close()
-
+        
+        flash("情報を更新しました。")
         return redirect("/mypage")
 
+    # GETの場合
     else:
-        # ログイン状態の確認
-        if not session:
-            redirect("/login")
-        return render_template("input.html")
+        # データベースに接続
+        conn = sqlite3.connect("health.db")
+        conn.row_factory = dict_factory
+        cur = conn.cursor()
 
+        #今日既に体温報告をしているかどうか確認
+        cur.execute("SELECT * FROM logs WHERE user_id = ? AND updated_at = ?", (session["user_id"], datetime.now().strftime("%Y-%m-%d")))
+        logs_data = cur.fetchall()
+
+        # 今日まだ入力していない場合
+        if not logs_data:        
+            conn.close()   
+            return render_template("input.html",runny_nose0="checked", headache0="checked", stuffiness0="checked", cough0="checked",taste_smell_abnormal0="checked")
+        
+        # 入力している場合
+        else:
+            cur.execute("SELECT * FROM log_details WHERE log_id = ?", (logs_data[0]["log_id"],))
+            log_details_data = cur.fetchall()
+            
+            # htmlのタグ作成
+            body_temperature = "value=" + str(logs_data[0]["temperature"])
+            memo = logs_data[0]["memo"]
+
+            # checkedをリストで管理する
+            inputstatus = []
+            inputstatusname  = ["runny", "headache", "fatigue", "cough", "abnormal"]
+            for n in inputstatusname:
+                if log_details_data[0][n] == 0:
+                    inputstatus.append("checked")
+                    inputstatus.append("")
+                else:
+                    inputstatus.append("")
+                    inputstatus.append("checked")
+            conn.close()
+            return render_template("input.html",body_temperature=body_temperature,\
+                                    runny_nose0=inputstatus[0], runny_nose1=inputstatus[1],\
+                                    headache0=inputstatus[2], headache1=inputstatus[3],\
+                                    stuffiness0=inputstatus[4], stuffiness1=inputstatus[5],\
+                                    cough0=inputstatus[6], cough1=inputstatus[7],\
+                                    taste_smell_abnormal0=inputstatus[8], taste_smell_abnormal1=inputstatus[9],\
+                                    memo=memo)
+                
 # ログイン画面
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -111,12 +156,7 @@ def login():
     # POST経由の場合
     if request.method == "POST":
 
-        # ユーザー名が空ではないことを確認する
         userid = request.form.get("userid")
-        input_check(userid,"login.html", "ユーザーIDを入力してください")
-
-        # パスワードが空ではないことを確認する
-        input_check(request.form.get("password"), "login.html", "パスワードを入力して下さい")
 
         # データベース接続処理
         conn = sqlite3.connect("health.db")
@@ -164,16 +204,12 @@ def register():
     if request.method == "POST":
 
         userid = request.form.get('userid')
-        input_check(userid,"register.html", "ユーザーIDを入力してください")
-
         user_name = request.form.get('user_name')
-        input_check(user_name, "register.html", "名前を入力してください")
-
         password = request.form.get('password')
-        input_check(password, "register.html", "パスワードを入力してください")
-
+        
+        if len(password) < 4:
+            return apology("register.html", "パスワードは4文字以上入力してください")
         confirmation = request.form.get('confirmation')
-        input_check(confirmation, "register.html", "確認パスワードを入力してください")
 
         # データベース接続
         conn = sqlite3.connect("health.db")
@@ -222,9 +258,7 @@ def groupcreate():
     # postで入ってきたらデータベースに登録の処理を実行
     if request.method == "POST":
 
-        # 空欄チェック
         groupname = request.form.get('groupname')
-        input_check(groupname, "groupcreate.html", "グループ名を入力してください")
 
         # データベース接続
         conn = sqlite3.connect("health.db")
@@ -275,9 +309,7 @@ def groupadd():
     # postで入ってきたらデータベースに登録の処理を実行
     if request.method == "POST":
 
-        # 空欄チェック
         groupid = str(request.form.get('groupid'))
-        input_check(groupid, "groupadd.html", "グループIDを入力してください")
 
         # データベース接続
         conn = sqlite3.connect("health.db")
