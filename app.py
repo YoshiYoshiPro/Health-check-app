@@ -524,7 +524,7 @@ def mypage():
 
     # 体温情報を一月分取得（BETWEENだとうまくいく）
     # cur.execute("SELECT temperature FROM logs WHERE user_id = ? AND datetime(updated_at, 'localtime') >= datetime(?, 'localtime') AND datetime(updated_at, 'localtime') <= datetime(?, 'localtime') ", (session["user_id"], first_day, last_day,))
-    cur.execute("SELECT temperature FROM logs WHERE user_id = ? AND updated_at BETWEEN ? AND ? ", (session["user_id"], first_day, last_day,))
+    cur.execute("SELECT temperature, updated_at FROM logs WHERE user_id = ? AND updated_at BETWEEN ? AND ? ", (session["user_id"], first_day, last_day,))
 
     results = cur.fetchall()
 
@@ -532,9 +532,19 @@ def mypage():
     tem = [0] * month_days_range
 
     # 体温情報があれば置換
+    #for i in range(len(results)):
+        #if results[i]:
+            #tem[i] = results[i]["temperature"]
+
     for i in range(len(results)):
         if results[i]:
-            tem[i] = results[i]["temperature"]
+            d = datetime.strptime(results[i]["updated_at"], '%Y-%m-%d')
+            d = d.day
+            tem[d - 1] = results[i]["temperature"]
+
+    #for i in range(month_days_range):
+        #if tem[i] < 30:
+            #tem[i] = 37
 
     # グラフの生成
     fig = plt.figure(figsize=(10, 4.0))
@@ -553,11 +563,12 @@ def mypage():
     # 目盛り線表示
     ax.grid()
 
-    # x軸は日付、y軸は体温情報
-    ax.plot(dates,tem, linewidth = 2, color = "orange")
-
-    # x目盛り軸の設定
+     # x目盛り軸の設定
     ax.set_xticklabels(dates, rotation=45, ha='right')
+
+    # x軸は日付、y軸は体温情報
+    ax.plot(dates, tem, linewidth = 2, color = "orange")
+
 
     # バッファに保存
     buf = BytesIO()
