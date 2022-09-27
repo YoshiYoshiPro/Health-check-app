@@ -36,7 +36,7 @@ def after_request(response):
     response.headers["Expires"] = 0
     response.headers["Pragma"] = "no-cache"
     return response
-    
+
 
 # 取り出したSQliteデータを辞書型に変換
 def dict_factory(cursor, row):
@@ -65,7 +65,7 @@ def index():
 
         # 備考を取得
         memo = request.form.get("memo")
-    
+
         # 詳細情報を取得
         headache = int(request.form.get("headache"))
         cough = int(request.form.get("cough"))
@@ -98,7 +98,7 @@ def index():
 
         conn.commit()
         conn.close()
-        
+
         flash("情報を更新しました。")
         return redirect("/mypage")
 
@@ -114,15 +114,15 @@ def index():
         logs_data = cur.fetchall()
 
         # 今日まだ入力していない場合
-        if not logs_data:        
-            conn.close()   
+        if not logs_data:
+            conn.close()
             return render_template("input.html",runny_nose0="checked", headache0="checked", stuffiness0="checked", cough0="checked",taste_smell_abnormal0="checked")
-        
+
         # 入力している場合
         else:
             cur.execute("SELECT * FROM log_details WHERE log_id = ?", (logs_data[0]["log_id"],))
             log_details_data = cur.fetchall()
-            
+
             # htmlのタグ作成
             body_temperature = "value=" + str(logs_data[0]["temperature"])
             memo = logs_data[0]["memo"]
@@ -145,7 +145,7 @@ def index():
                                     cough0=inputstatus[6], cough1=inputstatus[7],\
                                     taste_smell_abnormal0=inputstatus[8], taste_smell_abnormal1=inputstatus[9],\
                                     memo=memo)
-                
+
 # ログイン画面
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -206,7 +206,7 @@ def register():
         userid = request.form.get('userid')
         user_name = request.form.get('user_name')
         password = request.form.get('password')
-        
+
         if len(password) < 4:
             return apology("register.html", "パスワードは4文字以上入力してください")
         confirmation = request.form.get('confirmation')
@@ -557,26 +557,20 @@ def mypage():
     # 体温情報を一月分取得（BETWEENだとうまくいく）
     # cur.execute("SELECT temperature FROM logs WHERE user_id = ? AND datetime(updated_at, 'localtime') >= datetime(?, 'localtime') AND datetime(updated_at, 'localtime') <= datetime(?, 'localtime') ", (session["user_id"], first_day, last_day,))
     cur.execute("SELECT temperature, updated_at FROM logs WHERE user_id = ? AND updated_at BETWEEN ? AND ? ", (session["user_id"], first_day, last_day,))
-
     results = cur.fetchall()
 
     # 体温情報を収納するリスト
-    tem = [0] * month_days_range
+    tem = [np.nan] * month_days_range
 
-    # 体温情報があれば置換
-    #for i in range(len(results)):
-        #if results[i]:
-            #tem[i] = results[i]["temperature"]
-
+    # 体温情報と日付を対応づけて管理
     for i in range(len(results)):
         if results[i]:
+            # 日付情報を0000-00-00の形で抽出
             d = datetime.strptime(results[i]["updated_at"], '%Y-%m-%d')
-            d = d.day
-            tem[d - 1] = results[i]["temperature"]
-
-    #for i in range(month_days_range):
-        #if tem[i] < 30:
-            #tem[i] = 37
+            # さらに日付部分だけを抽出（n日）
+            n = d.day
+            #体温情報リストのn番目に体温値を挿入
+            tem[n - 1] = results[i]["temperature"]
 
     # グラフの生成
     fig = plt.figure(figsize=(10, 4.0))
@@ -585,9 +579,6 @@ def mypage():
     # 軸ラベルの設定（日本語でもできるが詳細な設定が必要）
     ax.set_xlabel("date", size = 14)
     ax.set_ylabel("body_temperature[℃]", size = 14)
-
-    # x軸の目盛りラベル
-    ax.set_xticks(dates)
 
     # y軸(最小値、最大値)
     ax.set_ylim(35, 40)
@@ -599,8 +590,10 @@ def mypage():
     ax.set_xticklabels(dates, rotation=45, ha='right')
 
     # x軸は日付、y軸は体温情報
-    ax.plot(dates, tem, linewidth = 2, color = "orange")
+    ax.plot(dates, tem, linewidth = 2, color = "orange", marker = "D")
 
+    # x軸の目盛りラベル
+    ax.set_xticks(dates)
 
     # バッファに保存
     buf = BytesIO()
