@@ -52,6 +52,12 @@ input[type="number"]::-webkit-inner-spin-button {
     -webkit-appearance: none;
 }
 
+.hobercolor:hover{
+    text-decoration: underline;
+    color: #002080;
+}
+
+
 /* .mypage:before{
     position: absolute;
     content: '';
