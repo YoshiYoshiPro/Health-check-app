@@ -9,7 +9,11 @@
     <!-- エラーメッセージ -->
     <p style="color:red">{{ message }}</p>
 
-    <p>チームメンバーの管理者に設定することができます。</p>
+    <p>
+        管理者画面に入れるメンバーを編集できます。<br>
+        下のリストはメンバーが一覧で表示され、管理者かどうかを確認することができます。<br>
+
+    </p>
 
     <div>
         <form action="/adminrole" method="post">
@@ -21,16 +25,17 @@
                 <option value="ippan">一般</option>
             </select>
             <br>
-            <button type="submit">変更</button>
+            <br>
+            <button class="btn btn-primary" type="submit">変更</button>
         </form>
         <br>
     </div>
 
 
-    <div>
-        <p>チームメンバーリスト</p><br>
-        <table>
-            <thead>
+    <div class="col-5 ml-3 container-fluid">
+        <div class="card-header table-emphasize-sick">チームメンバーリスト</div>
+        <table class="table table-hover">
+            <thead class="table-active">
                 <tr>
                     <th>ユーザーネーム</th>
                     <th>ID</th>

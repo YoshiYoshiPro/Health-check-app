@@ -600,7 +600,7 @@ def mypage():
     # 目盛り線表示
     ax.grid()
 
-     # x目盛り軸の設定
+    # x目盛り軸の設定
     ax.set_xticklabels(dates, rotation=45, ha='right')
 
     # x軸は日付、y軸は体温情報
