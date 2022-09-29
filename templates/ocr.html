@@ -5,17 +5,38 @@
 {% endblock %}
 
 {% block main %}
-
+    <h1 class="mt-4 mb-4">入力画面</h1>
     <form action="/ocr" method="post" enctype="multipart/form-data" >
-        <div>
-            <p>体温計の画像をアップロードしてください</p>
-            <input type="file" name="ocr">
-        </div>
-        <div>
-            <input type="submit" value="送信する">
-        </div>
+        <p>体温計の画像をアップロードしてください <br>
+            <br>
+            <input type="file" name="ocr" class="btn btn-primary">
+            {{ temperature }}
+        </p>
+        <p>鼻水・鼻づまりがないか <br>
+            <input type="radio" name="runny_nose" value="1" {{ runny_nose1 }}>ある
+            <input type="radio" name="runny_nose" value="0" {{ runny_nose0 }}>ない
+        </p>
+        <p>頭痛・吐き気がないか <br>
+            <input type="radio"  name="headache" value="1" {{ headache1 }}>ある
+            <input type="radio"  name="headache" value="0" {{ headache0 }}>ない
+        </p>
+        <p>息苦しさ・全身のだるさがないか <br>
+            <input type="radio"  name="stuffiness" value="1" {{ stuffiness1 }}>ある
+            <input type="radio"  name="stuffiness" value="0" {{ stuffiness0 }}>ない
+        </p>
+        <p>咳・のどの痛みが出ていないか <br>
+            <input type="radio"  name="cough" value="1" {{ cough1 }}>ある
+            <input type="radio"  name="cough" value="0" {{ cough0 }}>ない
+        </p>
+        <p>味覚・臭覚の異常がないか <br>
+            <input type="radio"  name="taste_smell_abnormal" value="1" {{ taste_smell_abnormal1 }}>ある
+            <input type="radio"  name="taste_smell_abnormal" value="0" {{ taste_smell_abnormal0 }}>ない
+        </p>
+    </div>
+    <div class="mb-3">
+        <textarea name="memo" rows="4" cols="40" placeholder="備考" >{{ memo }}</textarea>
+    </div>
+    <button class="btn btn-primary" type="submit">送信</button>
     </form>
-
-    {{ txt }}
 
 {% endblock %}
