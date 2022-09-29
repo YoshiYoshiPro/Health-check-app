@@ -6,4 +6,15 @@
 
 {% block main %}
 
+    <form action="/image" method="post" enctype="multipart/form-data" >
+        <div>
+            <p>自分の肌に合わなかった化粧品の成分</p>
+            <input type="file" name="ocr_bad">
+        </div>
+        <div>
+            <input type="submit" value="送信する">
+        </div>
+    </form>
+
+
 {% endblock %}
