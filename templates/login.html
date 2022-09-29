@@ -12,11 +12,11 @@
     <form action="/login" method="post">
         <div class="mb-3">
             <p>ユーザーID</p>
-            <input autocomplete="off" autofocus class="form-control mx-auto w-auto" id="userid" name="userid" placeholder="メールアドレス" type="text">
+            <input autocomplete="off" autofocus class="form-control mx-auto w-auto" id="userid" name="userid" placeholder="メールアドレス" required type="email">
         </div>
         <div class="mb-3">
             <p>パスワード</p>
-            <input class="form-control mx-auto w-auto" id="password" name="password" placeholder="パスワード" type="password">
+            <input class="form-control mx-auto w-auto" id="password" name="password" placeholder="パスワード" required type="password">
         </div>
         <button class="btn btn-primary" type="submit">ログイン</button>
     </form>

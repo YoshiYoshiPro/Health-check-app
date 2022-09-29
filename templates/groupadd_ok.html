@@ -6,7 +6,20 @@
 
 {% block main %}
     <form action="/adminhome">
-        <h3 class="mb-3">参加できました！</h3>
-        <button class="btn btn-primary" type="submit">管理者ページ</button>    
+        <h3 class="mb-3">グループに参加できました</h3>
+        
+        <button id="display-user" class="btn btn-primary" type="submit">管理者ページ</button>
+
+        <!-- 一般ユーザか管理者ユーザで管理者ページのボタンの表示を切り替える -->
+        <script>
+            let ele = document.getElementById('display-user');
+
+            // 赤線が引かれていますが、問題なく動きます
+            var checker = {{ display_check | tojson }};
+            
+            if (checker == 0) {
+                ele.style.display = 'none';
+            }
+        </script>
     </form>
 {% endblock %}

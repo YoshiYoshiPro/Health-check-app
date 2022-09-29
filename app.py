@@ -1,20 +1,29 @@
 import os
-
+import base64
 import sqlite3
-import datetime
+import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib.dates as mdates
+import calendar
+import base64
+from email import message
+from unittest import result
+from datetime import datetime, timedelta, date
+from matplotlib.figure import Figure
+from io import BytesIO
 from flask import Flask, flash, redirect, render_template, url_for, request, session
 from flask_session import Session
 from tempfile import mkdtemp
 from werkzeug.security import check_password_hash, generate_password_hash
 from datetime import datetime
 from helpers import apology, login_required, id_generator
+from io import BytesIO
+
 
 app = Flask(__name__)
 
-# Ensure templates are auto-reloaded 必要？
 app.config["TEMPLATES_AUTO_RELOAD"] = True
 
-# Configure session to use filesystem (instead of signed cookies) 必要？
 app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
@@ -27,6 +36,7 @@ def after_request(response):
     response.headers["Expires"] = 0
     response.headers["Pragma"] = "no-cache"
     return response
+    
 
 # 取り出したSQliteデータを辞書型に変換
 def dict_factory(cursor, row):
@@ -39,7 +49,7 @@ def dict_factory(cursor, row):
 # 入力の空欄チェック
 def input_check(inputtext, html, message):
     if not inputtext:
-        return apology(html, message)
+        return True
 
 
 # 体温報告画面
@@ -91,7 +101,6 @@ def index():
             redirect("/login")
         return render_template("input.html")
 
-
 # ログイン画面
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -104,7 +113,9 @@ def login():
 
         # ユーザー名が空ではないことを確認する
         userid = request.form.get("userid")
-        input_check(userid,"login.html", "ユーザーIDを入力してください")
+        # input_check(userid,"login.html", "ユーザーIDを入力してください")
+        if userid:
+            return apology()
 
         # パスワードが空ではないことを確認する
         input_check(request.form.get("password"), "login.html", "パスワードを入力して下さい")
@@ -126,6 +137,7 @@ def login():
 
         # ログインしたユーザーを記憶する
         session["user_id"] = rows[0]["user_id"]
+
         # ファイルを閉じる
         conn.close()
         # ユーザーを体温報告ページに移動させる。
@@ -151,7 +163,6 @@ def logout():
 @app.route("/register", methods=["GET", "POST"])
 def register():
 
-    # postで入ってきたらデータベースに登録の処理を実行
     if request.method == "POST":
 
         userid = request.form.get('userid')
@@ -185,15 +196,23 @@ def register():
         password_hash = generate_password_hash(password, method="sha256")
 
         # データベースに登録
-        newdata = (userid, user_name, password_hash, 1)
-        cur.execute("INSERT INTO users (user_id, user_name, hash, role) VALUES(?, ?, ?, ?)", (newdata))
+        newdata = (userid, user_name, password_hash)
+        cur.execute("INSERT INTO users (user_id, user_name, hash) VALUES(?, ?, ?)", (newdata))
+
+        # データべースの接続終了
         conn.commit()
         conn.close()
 
-        # リダイレクトでログイン画面に移動
-        return render_template("register_ok.html")
+        # アカウント登録したユーザーを記憶する
+        session["user_id"] = userid
 
-    # getの場合は登録画面になります。
+        # フラッシュメッセージ
+        flash("登録完了しました")
+
+        # リダイレクトで入力画面に移動
+        return redirect("/")
+
+    # getの場合は登録画面をレンダリング
     else:
         return render_template("register.html")
 
@@ -264,6 +283,7 @@ def groupadd():
 
         # データベース接続
         conn = sqlite3.connect("health.db")
+        conn.row_factory = dict_factory
         cur = conn.cursor()
 
         # データベースにグループ名とIDがあるかどうか確認
@@ -275,15 +295,24 @@ def groupadd():
         # ユーザーIDにグループIDを追加する
         cur.execute("UPDATE users SET group_id = ? WHERE user_id = ?", (groupid, session["user_id"]))
 
-        # グループ作成者に管理者権限を付与
-        cur.execute("UPDATE users SET role = 1 WHERE user_id = ?", (session["user_id"],))
+        # ユーザーの権限を取得
+        cur.execute("SELECT role FROM users WHERE user_id = ?", (session["user_id"],))
+        role = cur.fetchall()
+
+        # 管理者権限がある人
+        if role[0]["role"] == 1:
+            # 管理者ページのボタンを表示
+            display_check = 1
+        else:
+            # 管理者ページのボタンを非表示
+            display_check = 0
 
         # DB接続終了
         conn.commit()
         conn.close()
 
-        # ユーザーを体温報告ページに移動させる。
-        return render_template("groupadd_ok.html")
+        # ユーザーを体温報告ページに移動させる
+        return render_template("groupadd_ok.html", display_check=display_check)
 
     # GET経由ならログイン画面を表示させる
     else:
@@ -302,6 +331,7 @@ def adminhome():
     cur.execute("SELECT role FROM users WHERE user_id = ?;", (user_id,))
     role = cur.fetchall()
 
+    # 管理者権限がある人
     if role[0]["role"] == 1:
         # 日付の取得
         date = datetime.now().strftime("%Y-%m-%d")
@@ -343,7 +373,6 @@ def adminhome():
         for j in recorder_sql:
             recorder.append(j["user_name"])
 
-
         # 集合の差集合で未記入者を判別
         no_record = set(user_list) - set(recorder)
         no_record = list(no_record)
@@ -351,10 +380,11 @@ def adminhome():
         conn.close()
         return render_template("adminhome.html", date=date, fevers=fevers, no_records=no_record, poor_conditions=poor_conditions, date_display=date_display)
 
+    # 管理者権限がない人
     else:
         conn.close()
-        # ユーザーを体温報告ページに移動させる。「管理者権限がありません。」というメッセージを表示したいのですが、やり方がわからないため保留
-        return redirect("/")
+        # ユーザーを体温報告ページに移動させる。
+        return render_template("noAuthorization.html", message="管理者権限がありません")
 
 
 @app.route("/adminrole", methods=["GET", "POST"])
@@ -465,18 +495,83 @@ def mypage():
     conn.row_factory = dict_factory
     cur = conn.cursor()
 
-    # ユーザーIDの取得
-    user_id = cur.execute("SELECT user_id FROM users WHERE user_id = ?", (session["user_id"],))
-
-    # 記録の詳細を取得
-    details = cur.execute("SELECT * FROM log_details WHERE user_id = ?", (session["user_id"],))
-
-    # 記録を取得
-    logs = cur.execute("SELECT * FROM logs WHERE user_id = ?", (session["user_id"],))
-
-    # 記録テーブルと記録詳細テーブルを結合
+    # ユーザの入力情報を取得
     cur.execute("SELECT * FROM logs INNER JOIN log_details ON logs.log_id = log_details.log_id AND log_details.user_id = ?", (session["user_id"],))
     all = cur.fetchall()
+
+    # 現時点
+    dt_now = datetime.now()
+
+    #現時点の月の日数を計算
+    month_days_range = calendar.monthrange(dt_now.year, dt_now.month)[1]
+
+    # 日のデータを収納するリスト（横軸に使用）
+    dates = [date(int(dt_now.year), int(dt_now.month) , 1) + timedelta(days=i) for i in range(month_days_range)]
+
+    # 現時点の年月日を取得
+    dt1 = datetime(dt_now.year, dt_now.month, dt_now.day)
+
+    # 月の初めを取得
+    first_day = dt1.strftime("%Y-%m-01")
+
+    # 月の最終日を取得（もっとスマートな方法があれば変える）
+    if  month_days_range == 31:
+        last_day = dt1.strftime("%Y-%m-31")
+    elif month_days_range == 30:
+        last_day = dt1.strftime("%Y-%m-3")
+    elif month_days_range == 29:
+        last_day = dt1.strftime("%Y-%m-29")
+    elif month_days_range == 28:
+        last_day = dt1.strftime("%Y-%m-28")
+
+    # 体温情報を一月分取得（BETWEENだとうまくいく）
+    # cur.execute("SELECT temperature FROM logs WHERE user_id = ? AND datetime(updated_at, 'localtime') >= datetime(?, 'localtime') AND datetime(updated_at, 'localtime') <= datetime(?, 'localtime') ", (session["user_id"], first_day, last_day,))
+    cur.execute("SELECT temperature FROM logs WHERE user_id = ? AND updated_at BETWEEN ? AND ? ", (session["user_id"], first_day, last_day,))
+
+    results = cur.fetchall()
+
+    # 体温情報を収納するリスト
+    tem = [0] * month_days_range
+
+    # 体温情報があれば置換
+    for i in range(len(results)):
+        if results[i]:
+            tem[i] = results[i]["temperature"]
+
+    # グラフの生成
+    fig = plt.figure(figsize=(10, 4.0))
+    ax = fig.add_subplot(111)
+
+    # 軸ラベルの設定（日本語でもできるが詳細な設定が必要）
+    ax.set_xlabel("date", size = 14)
+    ax.set_ylabel("body_temperature[℃]", size = 14)
+
+    # x軸の目盛りラベル
+    ax.set_xticks(dates)
+
+    # y軸(最小値、最大値)
+    ax.set_ylim(35, 40)
+
+    # 目盛り線表示
+    ax.grid()
+
+    # x軸は日付、y軸は体温情報
+    ax.plot(dates,tem, linewidth = 2, color = "orange")
+
+    # x目盛り軸の設定
+    ax.set_xticklabels(dates, rotation=45, ha='right')
+
+    # バッファに保存
+    buf = BytesIO()
+    fig.savefig(buf, format='png')
+
+    # グラフをHTMLに埋め込めるよう変換
+    data = base64.b64encode(buf.getbuffer()).decode('ascii')
+    image_tag = f'<img src="data:image/png;base64,{data}"/>'
+
+    # DB接続終了
+    conn.commit()
+    conn.close()
 
     # 症状の判別を有無に置換（DBで0:無、1:有として扱っているため）
     for i in all:
@@ -486,4 +581,4 @@ def mypage():
             elif i[j] == 0:
                 i[j] = "無"
 
-    return render_template("mypage.html", details=details, logs=logs, all=all)
+    return render_template("mypage.html", all=all, image_tag=image_tag)
