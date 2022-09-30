@@ -27,6 +27,7 @@ import pyocr.builders
 import cv2
 from werkzeug.utils import secure_filename
 import werkzeug
+import pandas as pd
 
 
 
@@ -551,8 +552,11 @@ def mypage():
     conn.row_factory = dict_factory
     cur = conn.cursor()
 
+    #日付取得用変数を作成
+    sql_date = datetime.now().strftime("%Y-%m")  + "%"
+
     # ユーザの入力情報を取得
-    cur.execute("SELECT * FROM logs INNER JOIN log_details ON logs.log_id = log_details.log_id AND log_details.user_id = ?", (session["user_id"],))
+    cur.execute("SELECT * FROM logs INNER JOIN log_details ON logs.log_id = log_details.log_id AND log_details.user_id = ? AND logs.updated_at LIKE ?", (session["user_id"], sql_date))
     all = cur.fetchall()
 
     # 症状の判別を有無に置換（DBで0:無、1:有として扱っているため）
@@ -610,6 +614,11 @@ def mypage():
             tem[n - 1] = results[i]["temperature"]
             log_count += 1
 
+    #データフレーム型に変換
+    dateframe_data = {"temperature" : tem}
+    dateframe_data = pd.DataFrame(dateframe_data)
+    dateframe_data["temperature"] = dateframe_data["temperature"].interpolate()
+
     # 記録した回数が2日以上の場合グラフを表示させる
     if log_count > 1:
         # グラフの生成
@@ -631,6 +640,8 @@ def mypage():
 
         # x軸は日付、y軸は体温情報
         ax.plot(dates, tem, "-o", linewidth = 2, color = "orange", marker = "D")
+        #補間用
+        ax.plot(dates, dateframe_data["temperature"], linewidth = 2, color = "orange")
 
         # x軸の目盛りラベル
         ax.set_xticks(dates)
