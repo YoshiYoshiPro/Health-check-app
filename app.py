@@ -543,6 +543,14 @@ def mypage():
     cur.execute("SELECT * FROM logs INNER JOIN log_details ON logs.log_id = log_details.log_id AND log_details.user_id = ?", (session["user_id"],))
     all = cur.fetchall()
 
+    # 症状の判別を有無に置換（DBで0:無、1:有として扱っているため）
+    for i in all:
+        for j in i:
+            if i[j] == 1:
+                i[j] = "有"
+            elif i[j] == 0:
+                i[j] = "無"
+
     # 現時点
     dt_now = datetime.now()
 
@@ -576,6 +584,9 @@ def mypage():
     # 体温情報を収納するリスト
     tem = [np.nan] * month_days_range
 
+    # 何回記録したかカウントする変数
+    log_count = 0
+
     # 体温情報と日付を対応づけて管理
     for i in range(len(results)):
         if results[i]:
@@ -585,48 +596,58 @@ def mypage():
             n = d.day
             #体温情報リストのn番目に体温値を挿入
             tem[n - 1] = results[i]["temperature"]
+            log_count += 1
 
-    # グラフの生成
-    fig = plt.figure(figsize=(10, 4.0))
-    ax = fig.add_subplot(111)
+    # 記録した回数が2日以上の場合グラフを表示させる
+    if log_count > 1:
+        # グラフの生成
+        fig = plt.figure(figsize=(10, 4.0))
+        ax = fig.add_subplot(111)
 
-    # 軸ラベルの設定（日本語でもできるが詳細な設定が必要）
-    ax.set_xlabel("date", size = 14)
-    ax.set_ylabel("body_temperature[℃]", size = 14)
+        # 軸ラベルの設定（日本語でもできるが詳細な設定が必要）
+        ax.set_xlabel("date", size = 14)
+        ax.set_ylabel("body_temperature[℃]", size = 14)
 
-    # y軸(最小値、最大値)
-    ax.set_ylim(35, 40)
+        # y軸(最小値、最大値)
+        ax.set_ylim(35, 40)
 
-    # 目盛り線表示
-    ax.grid()
+        # 目盛り線表示
+        ax.grid()
 
-    # x目盛り軸の設定
-    ax.set_xticklabels(dates, rotation=45, ha='right')
+        # x目盛り軸の設定
+        ax.set_xticklabels(dates, rotation=45, ha='right')
 
-    # x軸は日付、y軸は体温情報
-    ax.plot(dates, tem, linewidth = 2, color = "orange", marker = "D")
+        # x軸は日付、y軸は体温情報
+        ax.plot(dates, tem, "-o", linewidth = 2, color = "orange", marker = "D")
 
-    # x軸の目盛りラベル
-    ax.set_xticks(dates)
+        # x軸の目盛りラベル
+        ax.set_xticks(dates)
 
-    # バッファに保存
-    buf = BytesIO()
-    fig.savefig(buf, format='png')
+        # 日付部分の文字が被らないよう処理
+        plt.tight_layout()
 
-    # グラフをHTMLに埋め込めるよう変換
-    data = base64.b64encode(buf.getbuffer()).decode('ascii')
-    image_tag = f'<img src="data:image/png;base64,{data}"/>'
+        # バッファに保存
+        buf = BytesIO()
+        fig.savefig(buf, format='png')
 
-    # DB接続終了,グラフの閉め
-    plt.close()
-    conn.close()
+        # グラフをHTMLに埋め込めるよう変換
+        data = base64.b64encode(buf.getbuffer()).decode('ascii')
+        image_tag = f'<img src="data:image/png;base64,{data}"/>'
 
-    # 症状の判別を有無に置換（DBで0:無、1:有として扱っているため）
-    for i in all:
-        for j in i:
-            if i[j] == 1:
-                i[j] = "有"
-            elif i[j] == 0:
-                i[j] = "無"
+        # DB接続終了,グラフの閉め
+        plt.close()
+        conn.close()
 
-    return render_template("mypage.html", all=all, image_tag=image_tag)
+        return render_template("mypage.html", all=all, image_tag=image_tag)
+
+    # 記録した日が1日のみの場合グラフは作成しない
+    else:
+        # DB接続終了,グラフの閉め
+        plt.close()
+        conn.close()
+
+        return render_template("mypage.html", all=all)
+
+
+
+
