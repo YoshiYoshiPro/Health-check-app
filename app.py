@@ -712,6 +712,8 @@ def ocr():
             temperature = tool.image_to_string(
                 temp_pil_im,    lang="letsgodigital",
                 builder=pyocr.builders.TextBuilder(tesseract_layout=6)
+
+            # 
             )
 
         # リストに変換
