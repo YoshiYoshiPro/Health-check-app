@@ -734,6 +734,10 @@ def ocr():
         # 点を挿入
         temperature.insert(idx+1, ".")
 
+        # 数字かどうか確認
+        if not str.isdigit(temperature[idx - 1]):
+            
+
         # 必要なものだけ再代入して、余計なものを削除
         temperature = temperature[idx - 1] + temperature[idx] + temperature[idx + 1] + temperature[idx + 2]
 
