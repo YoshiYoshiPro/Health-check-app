@@ -6,6 +6,8 @@
 
 {% block main %}
     <h1 class="mt-4 mb-4">入力画面</h1>
+    <!-- エラーメッセージ -->
+    <p style="color:red">{{ message }}</p>
     <form action="/ocr" method="post" enctype="multipart/form-data">
         <p>体温計の画像をアップロードしてください <br>
             <br>

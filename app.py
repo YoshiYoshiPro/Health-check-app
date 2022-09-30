@@ -742,8 +742,6 @@ def ocr():
         if not str.isdigit(temperature[idx + 2]):
             return apology("ocr.html", "体温が検出されませんでした。")
 
-
-
         # 必要なものだけ再代入して、余計なものを削除
         temperature = temperature[idx - 1] + temperature[idx] + temperature[idx + 1] + temperature[idx + 2]
 
