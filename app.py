@@ -726,7 +726,7 @@ def ocr():
             idx = temperature.index("8")
 
 
-        temperature.insert(, )
+        temperature.insert(idx, ".")
 
         # 備考を取得
         memo = request.form.get("memo")
