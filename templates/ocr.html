@@ -6,10 +6,10 @@
 
 {% block main %}
     <h1 class="mt-4 mb-4">入力画面</h1>
-    <form action="/ocr" method="post" enctype="multipart/form-data" >
+    <form action="/" method="post" enctype="multipart/form-data">
         <p>体温計の画像をアップロードしてください <br>
             <br>
-            <input type="file" name="ocr" class="btn btn-primary">
+            <input type="file" name="ocr" class="btn btn-primary"><br>
             {{ temperature }}
         </p>
         <p>鼻水・鼻づまりがないか <br>
