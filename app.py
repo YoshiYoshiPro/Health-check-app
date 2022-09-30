@@ -713,7 +713,9 @@ def ocr():
                 temp_pil_im,    lang="letsgodigital",
                 builder=pyocr.builders.TextBuilder(tesseract_layout=6)
 
-            # 
+            # 体温を見つけられなかったとき
+            if value == 0:
+                return 
             )
 
         # リストに変換
