@@ -714,7 +714,9 @@ def ocr():
                 builder=pyocr.builders.TextBuilder(tesseract_layout=6)
             )
 
-        # 点を挿入
+        # リストに変換
+        temperature = list(temperature)
+
         # どこに点を入れるかを判定
         if "5" in temperature:
             idx = temperature.index("5")
@@ -725,8 +727,11 @@ def ocr():
         elif "8" in temperature:
             idx = temperature.index("8")
 
+        # 点を挿入
+        temperature.insert(idx+1, ".")
 
-        temperature.insert(idx, ".")
+        # リストを文字列に変換
+        temperature = "".join(temperature)
 
         # 備考を取得
         memo = request.form.get("memo")
