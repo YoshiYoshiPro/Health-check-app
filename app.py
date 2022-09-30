@@ -716,13 +716,13 @@ def ocr():
 
         # 点を挿入
         # どこに点を入れるかを判定
-        if "5" in tempreture:
+        if "5" in temperature:
             idx = temperature.index("5")
-        elif "6" in tempreture:
+        elif "6" in temperature:
             idx = temperature.index("6")
-        elif "7" in tempreture:
+        elif "7" in temperature:
             idx = temperature.index("7")
-        elif "8" in tempreture:
+        elif "8" in temperature:
             idx = temperature.index("8")
 
 
