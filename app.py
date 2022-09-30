@@ -715,7 +715,7 @@ def ocr():
 
             # 体温を見つけられなかったとき
             if value == 0:
-                return 
+                return apology("ocr.html", "体温が検出されませんでした。")
             )
 
         # リストに変換
