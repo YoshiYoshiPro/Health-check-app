@@ -20,12 +20,19 @@ from werkzeug.security import check_password_hash, generate_password_hash
 from datetime import datetime
 from helpers import apology, login_required, id_generator
 from io import BytesIO
+from PIL import Image
+import sys
+import pyocr
+import pyocr.builders
+import cv2
+from werkzeug.utils import secure_filename
+import werkzeug
+
 
 
 app = Flask(__name__)
 
 app.config["TEMPLATES_AUTO_RELOAD"] = True
-
 app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
@@ -150,6 +157,7 @@ def index():
                                     taste_smell_abnormal0=inputstatus[8], taste_smell_abnormal1=inputstatus[9],\
                                     memo=memo)
 
+
 # ログイン画面
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -254,6 +262,7 @@ def register():
     else:
         return render_template("register.html")
 
+
 # グループ作成
 @app.route("/groupcreate", methods=["GET", "POST"])
 @login_required
@@ -305,6 +314,7 @@ def groupcreate():
     else:
         return render_template("groupcreate.html")
 
+
 # グループ参加
 @app.route("/groupadd", methods=["GET", "POST"])
 @login_required
@@ -340,6 +350,7 @@ def groupadd():
     # GET経由ならログイン画面を表示させる
     else:
         return render_template("groupadd.html")
+
 
 # グループ脱退
 @app.route("/groupgetout")
@@ -430,6 +441,7 @@ def adminhome():
         return render_template("noAuthorization.html", message="管理者権限がありません")
 
 
+# メンバー管理画面
 @app.route("/adminrole", methods=["GET", "POST"])
 def adminrole():
     # POSTで入ってきたら権限を変更する
@@ -462,7 +474,6 @@ def adminrole():
 
         # グループidの取得(もしsessionで取得できるならsessionで取得)
         # group_id = session["group_id"]
-
         cur.execute("SELECT group_id FROM users WHERE user_id = ?;", (admin_user_id,))
         group_id = cur.fetchall()
 
@@ -526,10 +537,11 @@ def adminrole():
 
         else:
             conn.close()
-            # ユーザーを体温報告ページに移動させる。 「管理者権限がありません。」というメッセージを表示したいのですが、やり方がわからないため保留
+            # ユーザーを体温報告ページに移動させる。
             return redirect("/")
 
 
+# マイページ画面
 @app.route("/mypage")
 @login_required
 def mypage():
@@ -649,5 +661,200 @@ def mypage():
         return render_template("mypage.html", all=all)
 
 
+#OpenCV型→PIL型に変換
+def cv2pil(image):
+    ''' OpenCV型 -> PIL型 '''
+    new_image = image.copy()
+    if new_image.ndim == 2:  # モノクロ
+        pass
+    elif new_image.shape[2] == 3:  # カラー
+        new_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+    elif new_image.shape[2] == 4:  # 透過
+        new_image = cv2.cvtColor(image, cv2.COLOR_BGRA2RGBA)
+    new_image = Image.fromarray(new_image)
+    return new_image
 
 
+# OCR画面
+@app.route("/ocr", methods=["GET", "POST"])
+@login_required
+def ocr():
+    if not session:
+        redirect("/login")
+
+    if request.method == "POST":
+        # データベースに接続
+        conn = sqlite3.connect("health.db")
+        conn.row_factory = dict_factory
+        cur = conn.cursor()
+
+        # パスを設定
+        TESSERACT_PATH = '/usr/share/tesseract-ocr/'
+        TESSDATA_PATH = '/usr/share/tesseract-ocr/4.00/tessdata'
+
+        os.environ["PATH"] += os.pathsep + TESSERACT_PATH
+        os.environ["TESSDATA_PREFIX"] = TESSDATA_PATH
+
+        # 画像ファイルの保存
+        img_inp = request.files['ocr']
+        FileName = img_inp.filename
+        saveFileName = datetime.now().strftime("%Y%m%d_%H%M%S_") + werkzeug.utils.secure_filename(FileName)
+        img_inp.save(os.path.join("/home/ubuntu/projects/Health-check-app/uploadfiles/", saveFileName))
+        path_ocr = "/home/ubuntu/projects/Health-check-app/uploadfiles/" + saveFileName
+
+        img_or = cv2.imread(path_ocr)
+
+        #グレースケール化
+        img_gray = cv2.cvtColor(img_or, cv2.COLOR_RGB2GRAY)
+
+        #OCRの準備
+        tools = pyocr.get_available_tools()
+        if len(tools) == 0:
+            print("No OCR tool found")
+            sys.exit(1)
+        # The tools are returned in the recommended order of usage
+        tool = tools[0]
+        print("Will use tool '%s'" % (tool.get_name()))
+        # Ex: Will use tool 'libtesseract'
+
+        langs = tool.get_available_languages()
+        print("Available languages: %s" % ", ".join(langs))
+        lang = langs[0]
+        print("Will use lang '%s'" % (lang))
+
+        value = 50
+        temperature = "1"
+
+        while not ('35' in temperature or '36' in temperature or '37' in temperature or '38' in temperature):
+            value = value - 5
+            #2値化（100:２値化の閾値／画像を見て調整する）
+            ret,thresh1 = cv2.threshold(img_gray,value,255,cv2.THRESH_BINARY)
+            #ノイズ処理（モルフォロジー変換）
+            kernel = np.ones((5,5),np.uint8)
+            img_opening = cv2.morphologyEx(thresh1, cv2.MORPH_OPEN, kernel)
+
+            #OCR実行
+            temp_pil_im = cv2pil(img_opening) #上述の画像処理後の画像データ
+            temperature = tool.image_to_string(
+                temp_pil_im,    lang="letsgodigital",
+                builder=pyocr.builders.TextBuilder(tesseract_layout=6)
+            )
+
+            # 体温を見つけられなかったとき
+            if value == 0:
+                return apology("ocr.html", "体温が検出されませんでした。")
+
+        # リストに変換
+        temperature = list(temperature)
+
+        # どこに点を入れるかを判定
+        if "5" in temperature:
+            idx = temperature.index("5")
+        elif "6" in temperature:
+            idx = temperature.index("6")
+        elif "7" in temperature:
+            idx = temperature.index("7")
+        elif "8" in temperature:
+            idx = temperature.index("8")
+
+        # 点を挿入
+        temperature.insert(idx+1, ".")
+
+        # 数字かどうか確認
+        if not str.isdigit(temperature[idx - 1]):
+            return apology("ocr.html", "体温が検出されませんでした。")
+        if not str.isdigit(temperature[idx]):
+            return apology("ocr.html", "体温が検出されませんでした。")
+        if not str.isdigit(temperature[idx + 2]):
+            return apology("ocr.html", "体温が検出されませんでした。")
+
+        # 必要なものだけ再代入して、余計なものを削除
+        temperature = temperature[idx - 1] + temperature[idx] + temperature[idx + 1] + temperature[idx + 2]
+
+        # リストを文字列に変換
+        temperature = "".join(temperature)
+
+        # 備考を取得
+        memo = request.form.get("memo")
+
+        # 詳細情報を取得
+        headache = int(request.form.get("headache"))
+        cough = int(request.form.get("cough"))
+        fatigue = int(request.form.get("stuffiness"))
+        abnormal = int(request.form.get("taste_smell_abnormal"))
+        runny = int(request.form.get("runny_nose"))
+
+        #今日既に体温報告をしているかどうか確認
+        cur.execute("SELECT log_id FROM logs WHERE user_id = ? AND updated_at = ?", (session["user_id"], datetime.now().strftime("%Y-%m-%d")))
+        i = cur.fetchall()
+
+        if not i:
+            # 体温、備考情報を記録テーブルに挿入
+            cur.execute("INSERT INTO logs(user_id, temperature, memo, updated_at) VALUES (?,?,?,?)",\
+                        (session["user_id"], temperature, memo, datetime.now().strftime("%Y-%m-%d")))
+            conn.commit()
+            # log_idを取得
+            cur.execute("SELECT log_id FROM logs ORDER BY log_id DESC LIMIT 1")
+            i = cur.fetchall()
+            log_id = i[0]["log_id"]
+
+            # 記録詳細テーブルに挿入
+            cur.execute("INSERT INTO log_details(log_id,user_id,headache,cough,fatigue,abnormal,runny) VALUES (?,?,?,?,?,?,?)",\
+                        (log_id, session["user_id"], headache, cough, fatigue, abnormal, runny),)
+            conn.commit()
+        else:
+            # 体温、備考情報を更新
+            log_id = i[0]["log_id"]
+            cur.execute("UPDATE logs SET temperature = ?, memo = ? WHERE log_id = ?", (temperature, memo, log_id))
+            cur.execute("UPDATE log_details SET headache = ?, cough= ?, fatigue = ?, abnormal = ?, runny = ? WHERE log_id = ?", \
+                        (headache, cough, fatigue, abnormal, runny, log_id,))
+            conn.commit()
+
+        conn.close()
+
+        flash("情報を更新しました。")
+        return redirect("/mypage")
+
+    # GETの場合
+    else:
+        # データベースに接続
+        conn = sqlite3.connect("health.db")
+        conn.row_factory = dict_factory
+        cur = conn.cursor()
+
+        #今日既に体温報告をしているかどうか確認
+        cur.execute("SELECT * FROM logs WHERE user_id = ? AND updated_at = ?", (session["user_id"], datetime.now().strftime("%Y-%m-%d")))
+        logs_data = cur.fetchall()
+
+        # 今日まだ入力していない場合
+        if not logs_data:
+            conn.close()
+            return render_template("ocr.html",runny_nose0="checked", headache0="checked", stuffiness0="checked", cough0="checked",taste_smell_abnormal0="checked")
+
+        # 入力している場合
+        else:
+            cur.execute("SELECT * FROM log_details WHERE log_id = ?", (logs_data[0]["log_id"],))
+            log_details_data = cur.fetchall()
+
+            # htmlのタグ作成
+            body_temperature = logs_data[0]["temperature"]
+            memo = logs_data[0]["memo"]
+
+            # checkedをリストで管理する
+            inputstatus = []
+            inputstatusname  = ["runny", "headache", "fatigue", "cough", "abnormal"]
+            for n in inputstatusname:
+                if log_details_data[0][n] == 0:
+                    inputstatus.append("checked")
+                    inputstatus.append("")
+                else:
+                    inputstatus.append("")
+                    inputstatus.append("checked")
+            conn.close()
+            return render_template("ocr.html",temperature=body_temperature,\
+                                    runny_nose0=inputstatus[0], runny_nose1=inputstatus[1],\
+                                    headache0=inputstatus[2], headache1=inputstatus[3],\
+                                    stuffiness0=inputstatus[4], stuffiness1=inputstatus[5],\
+                                    cough0=inputstatus[6], cough1=inputstatus[7],\
+                                    taste_smell_abnormal0=inputstatus[8], taste_smell_abnormal1=inputstatus[9],\
+                                    memo=memo)
