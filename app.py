@@ -712,11 +712,11 @@ def ocr():
             temperature = tool.image_to_string(
                 temp_pil_im,    lang="letsgodigital",
                 builder=pyocr.builders.TextBuilder(tesseract_layout=6)
+            )
 
             # 体温を見つけられなかったとき
             if value == 0:
                 return apology("ocr.html", "体温が検出されませんでした。")
-            )
 
         # リストに変換
         temperature = list(temperature)
@@ -737,9 +737,11 @@ def ocr():
         # 数字かどうか確認
         if not str.isdigit(temperature[idx - 1]):
             return apology("ocr.html", "体温が検出されませんでした。")
-        if not str.isdigit(temperature[idx])
+        if not str.isdigit(temperature[idx]):
             return apology("ocr.html", "体温が検出されませんでした。")
-        if not str.isdigit(temperature[idx + 1])
+        if not str.isdigit(temperature[idx + 2]):
+            return apology("ocr.html", "体温が検出されませんでした。")
+
 
 
         # 必要なものだけ再代入して、余計なものを削除
