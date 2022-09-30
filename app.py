@@ -714,6 +714,8 @@ def ocr():
                 builder=pyocr.builders.TextBuilder(tesseract_layout=6)
             )
 
+        temperature = 
+
         # 備考を取得
         memo = request.form.get("memo")
 
