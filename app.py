@@ -730,6 +730,9 @@ def ocr():
         # 点を挿入
         temperature.insert(idx+1, ".")
 
+        # 必要なものだけ再代入して、余計なものを削除
+        temperature = temperature[idx - 1] + temperature[idx] + temperature[idx + 1] + temperature[idx + 2]
+
         # リストを文字列に変換
         temperature = "".join(temperature)
 
