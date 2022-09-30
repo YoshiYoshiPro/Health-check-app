@@ -713,8 +713,8 @@ def ocr():
                 temp_pil_im,    lang="letsgodigital",
                 builder=pyocr.builders.TextBuilder(tesseract_layout=6)
             )
-            temperature.index()
 
+        temperature.index()
         temperature.insert(, )
 
         # 備考を取得
