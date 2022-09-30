@@ -699,7 +699,7 @@ def ocr():
         value = 50
         temperature = "1"
 
-        while not ('35' in temperature or '36' in temperature or '37' in temperature):
+        while not ('35' in temperature or '36' in temperature or '37' in temperature or '38' in temperature):
             value = value - 5
             #2値化（100:２値化の閾値／画像を見て調整する）
             ret,thresh1 = cv2.threshold(img_gray,value,255,cv2.THRESH_BINARY)
@@ -714,7 +714,18 @@ def ocr():
                 builder=pyocr.builders.TextBuilder(tesseract_layout=6)
             )
 
-        temperature.index()
+        # 点を挿入
+        # どこに点を入れるかを判定
+        if "5" in tempreture:
+            idx = temperature.index("5")
+        elif "6" in tempreture:
+            idx = temperature.index("6")
+        elif "7" in tempreture:
+            idx = temperature.index("7")
+        elif "8" in tempreture:
+            idx = temperature.index("8")
+
+
         temperature.insert(, )
 
         # 備考を取得
